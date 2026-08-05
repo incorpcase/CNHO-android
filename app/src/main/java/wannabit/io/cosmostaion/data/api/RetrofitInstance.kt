@@ -45,12 +45,6 @@ object RetrofitInstance {
             .baseUrl(CosmostationConstants.MINTSCAN_API_URL).build()
     }
 
-    private val skipRetrofit: Retrofit by lazy {
-        Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
-            .addCallAdapterFactory(CoroutineCallAdapterFactory()).client(okHttpClient)
-            .baseUrl(CosmostationConstants.SKIP_API_URL).build()
-    }
-
     private fun lcdRetrofit(chain: BaseChain): Retrofit {
         return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
@@ -124,10 +118,6 @@ object RetrofitInstance {
 
     fun moveApi(chain: BaseChain): LcdApi {
         return moveApiRetrofit(chain).create(LcdApi::class.java)
-    }
-
-    val skipApi: SkipApi by lazy {
-        skipRetrofit.create(SkipApi::class.java)
     }
 
     val moveApi: LcdApi by lazy {

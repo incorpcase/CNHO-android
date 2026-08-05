@@ -21,7 +21,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.concurrent.AtomicBoolean
+//import androidx.room.concurrent.AtomicBoolean
 import androidx.viewpager2.widget.ViewPager2
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
@@ -54,8 +54,6 @@ import wannabit.io.cosmostaion.databinding.DialogAdsInfoBinding
 import wannabit.io.cosmostaion.databinding.FragmentDashboardBinding
 import wannabit.io.cosmostaion.databinding.ItemAdsBinding
 import wannabit.io.cosmostaion.ui.main.chain.cosmos.CosmosActivity
-import wannabit.io.cosmostaion.ui.main.chain.evm.EvmActivity
-import wannabit.io.cosmostaion.ui.main.chain.major.MajorActivity
 import wannabit.io.cosmostaion.ui.main.setting.wallet.chain.ChainEndpointFragment
 import wannabit.io.cosmostaion.ui.main.setting.wallet.chain.EndPointType
 import java.math.BigDecimal
@@ -109,7 +107,7 @@ class DashboardFragment : Fragment() {
         setupHideButton()
         refreshData()
         initSearchView()
-        showAdsInfo()
+        //showAdsInfo()
     }
 
     override fun onResume() {
@@ -196,20 +194,8 @@ class DashboardFragment : Fragment() {
         override fun nodeDown(chain: BaseChain) {
             if (chain.fetchState == FetchState.IDLE || chain.fetchState == FetchState.BUSY) return
             if (chain.fetchState == FetchState.SUCCESS) {
-                if (chain.isOtherChains()) {
-                    Intent(requireContext(), MajorActivity::class.java).apply {
-                        putExtra("selectedChain", chain as Parcelable)
-                        startActivity(this)
-                    }
-
-                } else if (chain.supportCosmos() || chain.isEvmCosmos()) {
+                if (chain.supportCosmos()) {
                     Intent(requireContext(), CosmosActivity::class.java).apply {
-                        putExtra("selectedChain", chain as Parcelable)
-                        startActivity(this)
-                    }
-
-                } else {
-                    Intent(requireContext(), EvmActivity::class.java).apply {
                         putExtra("selectedChain", chain as Parcelable)
                         startActivity(this)
                     }
@@ -504,93 +490,92 @@ class DashboardFragment : Fragment() {
         )
     }
 
-    private fun showAdsInfo() {
-        AdsOnceGate.runOnce {
-            lifecycleScope.launch(Dispatchers.IO) {
-                val now = System.currentTimeMillis()
-                val hiddenIds = Prefs.getAdsSet()
+   // private fun showAdsInfo() {
+    //    AdsOnceGate.runOnce {
+     //       lifecycleScope.launch(Dispatchers.IO) {
+//val now = System.currentTimeMillis()
+ //               val hiddenIds = Prefs.getAdsSet()
 
-                val filteredAds = BaseData.ads.orEmpty().asSequence().filter { adInfo ->
-                    if (adInfo.images.mobile.isNullOrEmpty()) return@filter false
+   //             val filteredAds = BaseData.ads.orEmpty().asSequence().filter { adInfo ->
+  //                  if (adInfo.images.mobile.isNullOrEmpty()) return@filter false
 
-                    val start = Instant.parse(adInfo.startAt).toEpochMilli()
-                    if (now < start) return@filter false
+    //                val start = Instant.parse(adInfo.startAt).toEpochMilli()
+     //               if (now < start) return@filter false
 
-                    val endStr = adInfo.endAt?.trim()
-                    if (endStr.isNullOrEmpty()) {
-                        true
-                    } else {
-                        val end = Instant.parse(endStr).toEpochMilli()
-                        if (end < start) return@filter false
+      //              val endStr = adInfo.endAt?.trim()
+       //             if (endStr.isNullOrEmpty()) {
+        //                true
+         //           } else {
+           //             val end = Instant.parse(endStr).toEpochMilli()
+            //            if (end < start) return@filter false
 
-                        now <= end
-                    }
-                }.filter { adInfo ->
-                    val id = adInfo.id.trim().lowercase()
-                    !hiddenIds.contains(id)
-                }.sortedBy { it.priority }.toList()
+         //               now <= end
+          //          }
+          //      }.filter { adInfo ->
+           //         val id = adInfo.id.trim().lowercase()
+           //         !hiddenIds.contains(id)
+           //     }.sortedBy { it.priority }.toList()
 
-                withContext(Dispatchers.Main) {
-                    if (filteredAds.isNotEmpty()) {
-                        val inflater =
-                            requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-                        val binding = DialogAdsInfoBinding.inflate(inflater)
-                        val alertDialog =
-                            AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialogTheme)
-                                .setView(binding.root)
+            //    withContext(Dispatchers.Main) {
+             //       if (filteredAds.isNotEmpty()) {
+              //          val inflater =
+               //             requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+               //         val binding = DialogAdsInfoBinding.inflate(inflater)
+               //         val alertDialog =
+                 //           AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialogTheme)
+                 //               .setView(binding.root)
 
-                        val dialog = alertDialog.create()
-                        dialog.setCancelable(false)
-                        dialog.show()
+                  //      val dialog = alertDialog.create()
+                  //      dialog.setCancelable(false)
+                  //      dialog.show()
 
-                        binding.apply {
-                            fun updateIndicator(position: Int) {
-                                adsIndicator.text = "${position + 1}/${filteredAds.size}"
-                            }
+                //        binding.apply {
+                 //           fun updateIndicator(position: Int) {
+//                            }
 
-                            adsView.setBackgroundResource(R.drawable.dialog_transparent_bg)
-                            viewpager2.adapter = AdsPagerAdapter(filteredAds) { adInfo ->
-                                dialog.dismiss()
-                                startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW, adInfo.linkUrl?.toUri()
-                                    )
-                                )
-                            }
-                            viewpager2.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+                  //          adsView.setBackgroundResource(R.drawable.dialog_transparent_bg)
+                   //         viewpager2.adapter = AdsPagerAdapter(filteredAds) { adInfo ->
+                    //            dialog.dismiss()
+                     //           startActivity(
+                      //              Intent(
+                       //                 Intent.ACTION_VIEW, adInfo.linkUrl?.toUri()
+                       //             )
+                       //         )
+                        //    }
+                        //    viewpager2.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
-                            adsIndicator.isVisible = filteredAds.size > 1
-                            viewpager2.registerOnPageChangeCallback(object :
-                                ViewPager2.OnPageChangeCallback() {
-                                override fun onPageSelected(position: Int) {
-                                    updateIndicator(position)
-                                }
-                            })
+                        //    adsIndicator.isVisible = filteredAds.size > 1
+                         //   viewpager2.registerOnPageChangeCallback(object :
+                         //       ViewPager2.OnPageChangeCallback() {
+                         //       override fun onPageSelected(position: Int) {
+                         //           updateIndicator(position)
+                          //      }
+                           // })
 
-                            var isAdsPinned = false
-                            btnCheck.setOnClickListener {
-                                isAdsPinned = !isAdsPinned
-                                if (isAdsPinned) {
-                                    checkImg.setImageResource(R.drawable.icon_checkbox_on)
-                                } else {
-                                    checkImg.setImageResource(R.drawable.icon_checkbox_off)
-                                }
-                            }
+                          //  var isAdsPinned = false
+                          //  btnCheck.setOnClickListener {
+                         //       isAdsPinned = !isAdsPinned
+                          //      if (isAdsPinned) {
+                          //          checkImg.setImageResource(R.drawable.icon_checkbox_on)
+                          //      } else {
+                          //          checkImg.setImageResource(R.drawable.icon_checkbox_off)
+                          //      }
+                          //  }
 
-                            btnClose.paintFlags = Paint.UNDERLINE_TEXT_FLAG
-                            btnClose.setOnClickListener {
-                                if (isAdsPinned) {
-                                    val ids = BaseData.ads?.map { it.id } ?: mutableListOf()
-                                    Prefs.setAdsSet(ids)
-                                }
-                                dialog.dismiss()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+                           // btnClose.paintFlags = Paint.UNDERLINE_TEXT_FLAG
+                          //  btnClose.setOnClickListener {
+                          //      if (isAdsPinned) {
+                          //          val ids = BaseData.ads?.map { it.id } ?: mutableListOf()
+                          //          Prefs.setAdsSet(ids)
+                          //      }
+                          //      dialog.dismiss()
+                          //  }
+                        //}
+                   // }
+              //  }
+          //  }
+        //}
+    //}
 
     private class AdsPagerAdapter(
         private val ads: List<Ads>, private val btnViewClick: (Ads) -> Unit
@@ -748,11 +733,11 @@ class DashboardFragment : Fragment() {
     }
 }
 
-object AdsOnceGate {
-    private val didOnceShowAds = AtomicBoolean(false)
+//object AdsOnceGate {
+  //  private val didOnceShowAds = AtomicBoolean(false)
 
-    fun runOnce(block: () -> Unit) {
-        if (!didOnceShowAds.compareAndSet(false, true)) return
-        block()
-    }
-}
+  //  fun runOnce(block: () -> Unit) {
+   //     if (!didOnceShowAds.compareAndSet(false, true)) return
+   //     block()
+    //}
+//}

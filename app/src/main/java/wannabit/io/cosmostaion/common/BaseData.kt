@@ -40,6 +40,13 @@ object BaseData {
     var appSchemeUrl = ""
 
     fun getPrice(coinGeckoId: String?, isUsd: Boolean? = false): BigDecimal {
+        if (coinGeckoId == "cnho") {
+            return if (Prefs.currency == 4 && isUsd == false) {
+                BigDecimal.ONE.setScale(12, RoundingMode.HALF_DOWN)
+            } else {
+                BigDecimal("0.14").setScale(12, RoundingMode.HALF_DOWN)
+            }
+        }
         val price = if (isUsd == true) {
             usdPrices?.firstOrNull { it.coinGeckoId == coinGeckoId }
         } else {
@@ -61,8 +68,46 @@ object BaseData {
         return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_DOWN)
     }
 
+    /**
+     * Retrieves an asset from the global assets list.
+     * 
+     * @param chainName Must match the [BaseChain.apiName] (e.g., "cnho").
+     * @param denom The token denomination (e.g., "ucnho").
+     * 
+     * Note: If this returns null, ensure that the 'chain' field in the [Asset] list 
+     * exactly matches the [BaseChain.apiName].
+     */
     fun getAsset(chainName: String, denom: String): Asset? {
-        return assets?.firstOrNull { asset -> asset.chain == chainName && asset.denom?.lowercase() == denom.lowercase() }
+
+        val asset = (if (chainName == "cnho") {
+            assets?.firstOrNull {
+                it.chain == chainName &&
+                        it.denom.equals(denom, true)
+            } ?: Asset(
+                chain = "cnho",
+                type = "staking",
+                denom = "ucnho",
+                name = "CNHO",
+                symbol = "CNHO",
+                description = "CNHO Native Token",
+                decimals = 6,
+                image = null,
+                coinGeckoId = "cnho",
+                color = "#FFFFFF",
+                ibc_info = null
+            )
+        } else {
+            assets?.firstOrNull {
+                it.chain == chainName &&
+                        it.denom.equals(denom, true)
+            }
+        })
+
+        println("asset lookup = $chainName  $denom")
+        println("asset result = $asset")
+
+        return asset
+        //return assets?.firstOrNull { asset -> asset.chain == chainName && asset.denom?.lowercase() == denom.lowercase() }
     }
 
     fun getToken(chain: BaseChain, chainName: String, address: String): Token? {

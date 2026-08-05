@@ -26,7 +26,6 @@ import wannabit.io.cosmostaion.data.viewmodel.intro.WalletViewModel
 import wannabit.io.cosmostaion.databinding.FragmentServiceBinding
 import wannabit.io.cosmostaion.ui.main.dapp.DappStartFragment
 import wannabit.io.cosmostaion.ui.main.setting.SettingBottomFragment
-import wannabit.io.cosmostaion.ui.tx.genTx.SwapFragment
 import wannabit.io.cosmostaion.ui.tx.genTx.service.AllChainClaimFragment
 import wannabit.io.cosmostaion.ui.tx.genTx.service.AllChainCompoundingFragment
 import wannabit.io.cosmostaion.ui.tx.genTx.service.AllChainVoteFragment
@@ -152,12 +151,6 @@ class ServiceFragment : Fragment() {
                         return@setOnClickListener
                     }
                 }
-            }
-
-            coinSwapView.setOnClickListener {
-                handleOneClickWithDelay(
-                    SwapFragment()
-                )
             }
 
             dappView.setOnClickListener {

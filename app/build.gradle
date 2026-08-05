@@ -13,12 +13,10 @@ if (hasGoogleServicesJson) {
 android {
     def localPropertiesFile = rootProject.file("local.properties")
     def walletConnectApiKey = ""
-    def skipApiKey = ""
     if (localPropertiesFile.exists()) {
         def localProperties = new Properties()
         localProperties.load(new FileInputStream(localPropertiesFile))
         walletConnectApiKey = localProperties['walletconnect.apiKey.release']
-        skipApiKey = localProperties['skip.apiKey.release']
     }
 
     defaultConfig {
@@ -33,6 +31,8 @@ android {
 
         renderscriptTargetApi 31
         renderscriptSupportModeEnabled true
+
+        buildConfigField "String", "WALLETCONNECT_API_KEY", "\"${walletConnectApiKey}\""
     }
 
     signingConfigs {
@@ -50,7 +50,6 @@ android {
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField "String", "WALLETCONNECT_API_KEY", "\"${walletConnectApiKey}\""
-            buildConfigField "String", "SKIP_API_KEY", "\"${skipApiKey}\""
             signingConfig signingConfigs.release
         }
     }
@@ -67,8 +66,11 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     lint {
         abortOnError false
@@ -156,16 +158,17 @@ dependencies {
     implementation 'com.github.yuriy-budiyev:code-scanner:2.3.0'
 
     //kotlin
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.8.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     //firebase
     implementation 'com.google.firebase:firebase-messaging:23.1.0'
     implementation 'com.google.firebase:firebase-core:20.0.0'
 
     //database
-    def room_version = "2.7.1"
+    def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
+    //kapt "org.xerial:sqlite-jdbc:3.47.1.0"
     implementation "androidx.room:room-ktx:$room_version"
 
     //lottie
@@ -199,5 +202,28 @@ dependencies {
 
     implementation('xyz.mcxross.kaptos:kaptos-android:0.1.2-beta') {
         exclude group: "org.bouncycastle"
+    }
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+//kapt {
+ //   correctErrorTypes = true
+  //  javacOptions {
+  //      option("-Dsqlite.purejava=true")
+  //  }
+//}
+
+//.withType(org.jetbrains.kotlin.gradle.internal.KaptTask).configureEach {
+  //  kaptProcessJvmArgs.add("-Dsqlite.purejava=true")
+//}
+
+afterEvaluate {
+    if (tasks.findByName('unitTestClasses') == null) {
+        tasks.register('unitTestClasses') {
+            dependsOn tasks.matching { it.name.endsWith('UnitTestSources') }
+        }
     }
 }

@@ -140,11 +140,7 @@ class TxResultActivity : BaseActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        if (txResultType == TxResultType.SKIP) {
-            startMainActivity()
-        } else {
-            finish()
-        }
+        finish()
     }
 
     private fun updateView() {
@@ -189,10 +185,6 @@ class TxResultActivity : BaseActivity() {
 
             btnConfirm.setOnClickListener {
                 when (txResultType) {
-                    TxResultType.SKIP -> {
-                        startMainActivity()
-                    }
-
                     TxResultType.NFT -> {
                         selectedChain?.cosmosFetcher?.cw721Fetched = false
                         finish()
@@ -419,11 +411,7 @@ class TxResultActivity : BaseActivity() {
         dialog.show()
 
         binding.btnClose.setOnClickListener {
-            if (txResultType == TxResultType.SKIP) {
-                startMainActivity()
-            } else {
-                finish()
-            }
+            finish()
             dialog.dismiss()
         }
 
@@ -458,4 +446,4 @@ class TxResultActivity : BaseActivity() {
     }
 }
 
-enum class TxResultType { COSMOS, SKIP, NFT, BTC_STAKE, BTC_UNSTAKE }
+enum class TxResultType { COSMOS, NFT, BTC_STAKE, BTC_UNSTAKE }

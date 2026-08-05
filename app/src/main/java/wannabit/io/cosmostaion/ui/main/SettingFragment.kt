@@ -78,7 +78,6 @@ class SettingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initView()
-        initChainManageCnt()
         setUpClickAction()
         setUpSwitchAction()
         checkAccountStatus()
@@ -89,27 +88,17 @@ class SettingFragment : Fragment() {
         binding.apply {
             listOf(
                 accountView,
-                legacyView,
-                testnetView,
-                chainView,
-                chainNoticeView,
                 addressBookView,
                 languageView,
-                themeView,
                 currencyView,
-                styleView,
-                priceView,
                 alarmView,
                 appLockView,
                 bioView,
                 helpView,
-                homepageView,
                 noticeView,
                 termView,
                 privacyView,
-                githubView,
-                versionView,
-                devView
+                versionView
             ).forEach { it.setBackgroundResource(R.drawable.item_bg) }
             noticeView.visibility = View.GONE
 
@@ -148,20 +137,6 @@ class SettingFragment : Fragment() {
         }
     }
 
-    private fun initChainManageCnt() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val chainNames: MutableList<String> = mutableListOf()
-            allChains().forEach { chain ->
-                if (!chainNames.contains(chain.name)) {
-                    chainNames.add(chain.name)
-                }
-            }
-            withContext(Dispatchers.Main) {
-                binding.supportChainCnt.text = chainNames.size.toString()
-            }
-        }
-    }
-
     private fun checkAccountStatus() {
         ApplicationViewModel.shared.currentAccountResult.observe(viewLifecycleOwner) {
             updateWalletView()
@@ -196,34 +171,7 @@ class SettingFragment : Fragment() {
                 }
             }
 
-            when (Prefs.theme) {
-                0 -> {
-                    theme.text = getString(R.string.title_dark_theme)
-                }
-
-                else -> {
-                    theme.text = getString(R.string.title_cosmic_theme)
-                }
-            }
-
             currency.text = BaseData.currencyName()
-            style.text = if (Prefs.style == 0) {
-                getString(R.string.str_simple)
-            } else {
-                getString(R.string.str_pro)
-            }
-
-            when (Prefs.priceStyle) {
-                0 -> {
-                    priceUpImg.setImageResource(R.drawable.icon_price_up)
-                    priceDownImg.setImageResource(R.drawable.icon_price_down)
-                }
-
-                else -> {
-                    priceUpImg.setImageResource(R.drawable.icon_price_up_reverse)
-                    priceDownImg.setImageResource(R.drawable.icon_price_down_reverse)
-                }
-            }
         }
     }
 
@@ -231,20 +179,6 @@ class SettingFragment : Fragment() {
         binding.apply {
             accountView.setOnClickListener {
                 Intent(requireContext(), AccountActivity::class.java).apply {
-                    startActivity(this)
-                    requireActivity().toMoveAnimation()
-                }
-            }
-
-            chainView.setOnClickListener {
-                Intent(requireContext(), ChainActivity::class.java).apply {
-                    startActivity(this)
-                    requireActivity().toMoveAnimation()
-                }
-            }
-
-            chainNoticeView.setOnClickListener {
-                Intent(requireContext(), ChainNoticeActivity::class.java).apply {
                     startActivity(this)
                     requireActivity().toMoveAnimation()
                 }
@@ -263,22 +197,6 @@ class SettingFragment : Fragment() {
                 )
             }
 
-            themeView.setOnClickListener {
-                handleOneClickWithDelay(
-                    ThemeFragment()
-                )
-                parentFragmentManager.setFragmentResultListener(
-                    "theme", this@SettingFragment
-                ) { _, bundle ->
-                    val theme = bundle.getInt("theme")
-                    if (Prefs.theme != theme) {
-                        Prefs.theme = theme
-                        ApplicationViewModel.shared.themeOption(true)
-                    }
-                    updateDefaultView()
-                }
-            }
-
             currencyView.setOnClickListener {
                 handleOneClickWithDelay(
                     SettingBottomFragment.newInstance(null, SettingType.CURRENCY)
@@ -288,37 +206,6 @@ class SettingFragment : Fragment() {
                 ) { _, _ ->
                     currency.text = BaseData.currencyName()
                     walletViewModel.price(BaseData.currencyName(), true)
-                }
-            }
-
-            styleView.setOnClickListener {
-                handleOneClickWithDelay(
-                    StyleFragment()
-                )
-                parentFragmentManager.setFragmentResultListener(
-                    "style", this@SettingFragment
-                ) { _, bundle ->
-                    val style = bundle.getInt("style")
-                    if (Prefs.style != style) {
-                        Prefs.style = style
-                        ApplicationViewModel.shared.styleOption(true)
-                    }
-                    updateDefaultView()
-                }
-            }
-
-            priceView.setOnClickListener {
-                handleOneClickWithDelay(
-                    SettingBottomFragment.newInstance(null, SettingType.PRICE_STATUS)
-                )
-                parentFragmentManager.setFragmentResultListener(
-                    "priceStyle", this@SettingFragment
-                ) { _, bundle ->
-                    val priceStyle = bundle.getInt("priceStyle")
-                    if (Prefs.priceStyle != priceStyle) {
-                        Prefs.priceStyle = priceStyle
-                    }
-                    updateDefaultView()
                 }
             }
 
@@ -339,14 +226,6 @@ class SettingFragment : Fragment() {
                 startActivity(
                     Intent(
                         Intent.ACTION_VIEW, url
-                    )
-                )
-            }
-
-            homepageView.setOnClickListener {
-                startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW, Uri.parse(CosmostationConstants.COSMOSTATION_HOMEPAGE)
                     )
                 )
             }
@@ -385,14 +264,6 @@ class SettingFragment : Fragment() {
                 )
             }
 
-            githubView.setOnClickListener {
-                startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW, Uri.parse(CosmostationConstants.COSMOSTATION_GITHUB)
-                    )
-                )
-            }
-
             versionView.setOnClickListener {
                 startActivity(
                     Intent(
@@ -401,39 +272,8 @@ class SettingFragment : Fragment() {
                     )
                 )
             }
-
-            devView.setOnClickListener {
-                val intent = Intent(requireContext(), DevDialogActivity::class.java)
-                devResultLauncher.launch(intent)
-            }
         }
     }
-
-    private val devResultLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                result.data?.getStringExtra("url")?.let { url ->
-                    val uri = Uri.parse(url)
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        if (uri.scheme != null && uri.host != null && Patterns.WEB_URL.matcher(url)
-                                .matches()
-                        ) {
-                            requireActivity().runOnUiThread {
-                                Intent(requireActivity(), DappActivity::class.java).apply {
-                                    putExtra("dapp", url)
-                                    startActivity(this)
-                                }
-                            }
-
-                        } else {
-                            requireActivity().runOnUiThread {
-                                requireActivity().makeToast(url)
-                            }
-                        }
-                    }, 500)
-                }
-            }
-        }
 
     private fun handleOneClickWithDelay(bottomSheetDialogFragment: BottomSheetDialogFragment) {
         if (isClickable) {
@@ -451,12 +291,6 @@ class SettingFragment : Fragment() {
 
     private fun onUpdateSwitch() {
         binding.apply {
-            legacySwitch.isChecked = Prefs.displayLegacy
-            legacySwitch.setSwitchView()
-
-            testnetSwitch.isChecked = Prefs.displayTestnet
-            testnetSwitch.setSwitchView()
-
             alarmSwitch.isChecked = Prefs.alarmEnable
             alarmSwitch.setSwitchView()
 
@@ -480,54 +314,6 @@ class SettingFragment : Fragment() {
     private fun setUpSwitchAction() {
         binding.apply {
             onUpdateSwitch()
-
-            legacySwitch.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    legacySwitch.thumbDrawable =
-                        ContextCompat.getDrawable(requireContext(), R.drawable.switch_thumb_on)
-                    Prefs.displayLegacy = true
-                } else {
-                    legacySwitch.thumbDrawable =
-                        ContextCompat.getDrawable(requireContext(), R.drawable.switch_thumb_off)
-                    Prefs.displayLegacy = false
-                }
-                if (requireActivity().supportFragmentManager.findFragmentByTag("dialog") == null) {
-                    waitingDialog?.show(requireActivity().supportFragmentManager, "dialog")
-                }
-                setVibrate()
-                ApplicationViewModel.shared.displayLegacy(Prefs.displayLegacy)
-
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (waitingDialog?.isAdded == true) {
-                        waitingDialog?.dismissAllowingStateLoss()
-                    }
-                }, 1000)
-            }
-
-            testnetSwitch.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    testnetSwitch.thumbDrawable =
-                        ContextCompat.getDrawable(requireContext(), R.drawable.switch_thumb_on)
-                    Prefs.displayTestnet = true
-                } else {
-                    testnetSwitch.thumbDrawable =
-                        ContextCompat.getDrawable(requireContext(), R.drawable.switch_thumb_off)
-                    Prefs.displayTestnet = false
-                }
-
-                if (requireActivity().supportFragmentManager.findFragmentByTag("dialog") == null) {
-                    waitingDialog?.show(requireActivity().supportFragmentManager, "dialog")
-                }
-                setVibrate()
-                ApplicationViewModel.shared.displayTestnet(Prefs.displayTestnet)
-
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (waitingDialog?.isAdded == true) {
-                        waitingDialog?.dismissAllowingStateLoss()
-                        initChainManageCnt()
-                    }
-                }, 1000)
-            }
 
             alarmSwitch.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {

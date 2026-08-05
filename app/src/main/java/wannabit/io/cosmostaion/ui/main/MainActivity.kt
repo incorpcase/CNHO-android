@@ -34,6 +34,7 @@ import wannabit.io.cosmostaion.database.Prefs
 import wannabit.io.cosmostaion.databinding.ActivityMainBinding
 import wannabit.io.cosmostaion.databinding.ViewTabItemBinding
 import wannabit.io.cosmostaion.ui.init.IntroActivity
+import wannabit.io.cosmostaion.ui.main.MainStakeFragment
 
 class MainActivity : BaseActivity() {
 
@@ -161,8 +162,8 @@ class MainActivity : BaseActivity() {
                     }
 
                     1 -> {
-                        tabBinding.tabIcon.setImageResource(R.drawable.icon_service)
-                        tabBinding.tabText.text = getString(R.string.str_service)
+                        tabBinding.tabIcon.setImageResource(R.drawable.icon_stake)
+                        tabBinding.tabText.text = getString(R.string.str_stake)
                     }
 
                     2 -> {
@@ -341,7 +342,7 @@ class MainActivity : BaseActivity() {
         FragmentStateAdapter(fragmentActivity) {
         private val mainFragments = mutableListOf(
             DashboardFragment.newInstance(BaseData.baseAccount),
-            ServiceFragment(),
+            MainStakeFragment(),
             SettingFragment()
         )
 

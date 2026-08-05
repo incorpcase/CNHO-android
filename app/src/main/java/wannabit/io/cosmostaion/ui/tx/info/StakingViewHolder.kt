@@ -9,6 +9,7 @@ import com.cosmos.staking.v1beta1.StakingProto
 import com.cosmos.staking.v1beta1.StakingProto.Validator
 import wannabit.io.cosmostaion.R
 import wannabit.io.cosmostaion.chain.BaseChain
+import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainInitia
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainNeutron
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainZenrock
@@ -34,8 +35,8 @@ class StakingViewHolder(
     ) {
         binding.apply {
             delegationView.setBackgroundResource(R.drawable.item_bg)
-            rewardLayout.goneOrVisible(chain is ChainNeutron)
-            estimateLayout.goneOrVisible(chain is ChainNeutron)
+            rewardLayout.goneOrVisible(chain is ChainNeutron || chain is ChainCnho)
+            estimateLayout.goneOrVisible(chain is ChainNeutron || chain is ChainCnho)
             clickImg.setColorFilter(
                 ContextCompat.getColor(context, R.color.color_base03), PorterDuff.Mode.SRC_IN
             )

@@ -10,27 +10,7 @@ import kotlinx.parcelize.Parcelize
 import org.bitcoinj.crypto.ChildNumber
 import org.web3j.protocol.Web3j
 import wannabit.io.cosmostaion.R
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAgoric118
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAgoric564
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAkash
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAllora
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAlthea118
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAndromeda
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainArchway
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainArkeo
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAssetMantle
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAtomone
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAxelar
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainAxone
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainBabylon
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainBand
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainBeezee
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainBitcanna
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainBitsong
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainBluzelle
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainC4E
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainCarbon
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainCelestia
+import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainCheqd
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainChihuahua
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainComdex
@@ -347,9 +327,7 @@ open class BaseChain : Parcelable {
         return supportCosmos() && supportEvm
     }
 
-    fun isOtherChains(): Boolean {
-        return this is ChainSui || this is ChainIota || this is ChainBitCoin86 || this is ChainSolana || this.isMoveChain
-    }
+    fun isOtherChains(): Boolean = isMoveChain
 
     fun getChainParam(): JsonObject? {
         return try {
@@ -395,6 +373,9 @@ open class BaseChain : Parcelable {
     }
 
     fun getMainAssetSymbol(): String {
+        BaseData.getAsset(apiName, getMainAssetDenom())?.symbol?.let {
+            return it
+        }
         return if (getChainListParam()?.has("main_asset_symbol") == true) {
             getChainListParam()?.get("main_asset_symbol")?.asString ?: coinSymbol
         } else {
@@ -411,10 +392,13 @@ open class BaseChain : Parcelable {
     }
 
     fun getStakeAssetSymbol(): String {
+        BaseData.getAsset(apiName, getStakeAssetDenom())?.symbol?.let {
+            return it
+        }
         return if (getChainListParam()?.has("staking_asset_symbol") == true) {
-            getChainListParam()?.get("staking_asset_symbol")?.asString ?: stakeDenom
+            getChainListParam()?.get("staking_asset_symbol")?.asString ?: coinSymbol
         } else {
-            stakeDenom
+            coinSymbol
         }
     }
 
@@ -431,6 +415,9 @@ open class BaseChain : Parcelable {
     }
 
     fun getGasAssetSymbol(): String {
+        BaseData.getAsset(apiName, getGasAssetDenom())?.symbol?.let {
+            return it
+        }
         return if (getChainListParam()?.has("gas_asset_symbol") == true) {
             getChainListParam()?.get("gas_asset_symbol")?.asString ?: coinSymbol
         } else if (getChainListParam()?.has("staking_asset_symbol") == true) {
@@ -455,7 +442,7 @@ open class BaseChain : Parcelable {
         }
     }
 
-    fun getInitFee(c: Context): TxProto.Fee? {
+    open fun getInitFee(c: Context): TxProto.Fee? {
         return if (getDefaultFeeCoins(c).isNotEmpty()) {
             val fee = getDefaultFeeCoins(c).first()
             val feeCoin =
@@ -470,18 +457,9 @@ open class BaseChain : Parcelable {
         var feeCoin: CoinProto.Coin? = null
         for (i in 0 until getDefaultFeeCoins(c).size) {
             val minFee = getDefaultFeeCoins(c)[i]
-            if (this is ChainGnoTestnet && minFee.amount.toBigDecimal() <= gnoRpcFetcher?.balanceAmount(
-                    minFee.denom
-                )
-            ) {
+            if (minFee.amount.toBigDecimal() <= cosmosFetcher?.availableAmount(minFee.denom)) {
                 feeCoin = minFee
                 break
-
-            } else {
-                if (minFee.amount.toBigDecimal() <= cosmosFetcher?.availableAmount(minFee.denom)) {
-                    feeCoin = minFee
-                    break
-                }
             }
         }
         if (feeCoin != null) {
@@ -547,7 +525,7 @@ open class BaseChain : Parcelable {
         return result
     }
 
-    fun getFeeInfos(c: Context): MutableList<FeeInfo> {
+    open fun getFeeInfos(c: Context): MutableList<FeeInfo> {
         val result: MutableList<FeeInfo> = mutableListOf()
         getChainListParam()?.getAsJsonObject("cosmos_fee_info")?.let {
             it.getAsJsonArray("rate").forEach { rate ->
@@ -622,23 +600,10 @@ open class BaseChain : Parcelable {
         }
     }
 
-    fun skipAffiliate(): String {
-        return BaseData.chainParam?.get("cosmos")?.asJsonObject?.get("params")?.asJsonObject?.get("chainlist_params")?.asJsonObject?.get(
-            "skip_Affiliate"
-        )?.asString ?: "50"
-    }
-
     fun isTxFeePayable(c: Context): Boolean {
         getDefaultFeeCoins(c).forEach { fee ->
-            if (this is ChainGnoTestnet) {
-                if (fee.amount.toBigDecimal() <= gnoRpcFetcher?.balanceAmount(fee.denom)) {
-                    return true
-                }
-
-            } else {
-                if (fee.amount.toBigDecimal() <= cosmosFetcher?.availableAmount(fee.denom)) {
-                    return true
-                }
+            if (fee.amount.toBigDecimal() <= cosmosFetcher?.availableAmount(fee.denom)) {
+                return true
             }
         }
         return false
@@ -791,253 +756,14 @@ open class BaseChain : Parcelable {
     }
 }
 
-fun allChains(): MutableList<BaseChain> {
-    var chains = mutableListOf<BaseChain>()
-    chains.add(ChainCosmos())
-    chains.add(ChainAgoric564())
-    chains.add(ChainAgoric118())
-    chains.add(ChainAiozEvm())
-    chains.add(ChainAkash())
-    chains.add(ChainAllora())
-    chains.add(ChainAltheaEvm())
-    chains.add(ChainAlthea118())
-    chains.add(ChainAndromeda())
-    chains.add(ChainAptos())
-    chains.add(ChainArbitrum())
-    chains.add(ChainArchway())
-    chains.add(ChainArkeo())
-    chains.add(ChainAssetMantle())
-    chains.add(ChainAtomone())
-    chains.add(ChainAvalanche())
-    chains.add(ChainAxelar())
-    chains.add(ChainAxone())
-    chains.add(ChainBabylon())
-    chains.add(ChainBand())
-    chains.add(ChainBase())
-    chains.add(ChainBeezee())
-    chains.add(ChainBerachain())
-    chains.add(ChainBitcanna())
-    chains.add(ChainBitCoin44())
-    chains.add(ChainBitCoin49())
-    chains.add(ChainBitCoin84())
-    chains.add(ChainBitCoin86())
-    chains.add(ChainBitsong())
-    chains.add(ChainBinanceSmart())
-    chains.add(ChainBlast())
-    chains.add(ChainBluzelle())
-    chains.add(ChainCantoEvm())
-    chains.add(ChainCarbon())
-    chains.add(ChainCelestia())
-    chains.add(ChainCelo())
-    chains.add(ChainC4E())
-    chains.add(ChainCheqd())
-    chains.add(ChainChihuahua())
-    chains.add(ChainComdex())
-    chains.add(ChainCoreum())
-    chains.add(ChainCronos())
-    chains.add(ChainCryptoorg())
-    chains.add(ChainDesmos())
-    chains.add(ChainDHealth())
-    chains.add(ChainDoravota())
-    chains.add(ChainDungeon())
-    chains.add(ChainDydx())
-    chains.add(ChainDymensionEvm())
-    chains.add(ChainElys())
-    chains.add(ChainEpixEvm())
-    chains.add(ChainEthereum())
-    chains.add(ChainEvmosEvm())
-    chains.add(ChainFantom())
-    chains.add(ChainFetchAi())
-    chains.add(ChainFetchAi60Old())
-    chains.add(ChainFetchAi60Secp())
-    chains.add(ChainFirma())
-    chains.add(ChainForma())
-    chains.add(ChainFxcoreEvm())
-    chains.add(ChainGgezchain())
-    chains.add(ChainGitopia())
-    chains.add(ChainGonka())
-    chains.add(ChainGnosis())
-    chains.add(ChainGravityAlpha())
-    chains.add(ChainGravityBridge())
-    chains.add(ChainHaqqEvm())
-    chains.add(ChainHippocrat())
-    chains.add(ChainHumansEvm())
-    chains.add(ChainInitia())
-    chains.add(ChainInjectiveEvm())
-    chains.add(ChainInt3Face())
-    chains.add(ChainIntento())
-    chains.add(ChainIota())
-    chains.add(ChainIris())
-    chains.add(ChainIxo())
-    chains.add(ChainJackal())
-    chains.add(ChainJuno())
-    chains.add(ChainKaia())
-    chains.add(ChainKavaEvm())
-    chains.add(ChainKava459())
-    chains.add(ChainKava118())
-    chains.add(ChainKi())
-    chains.add(ChainKima())
-    chains.add(ChainKopi())
-    chains.add(ChainKyve())
-    chains.add(ChainLava())
-    chains.add(ChainLikeCoin())
-    chains.add(ChainLinea())
-    chains.add(ChainLombard())
-    chains.add(ChainLum880())
-    chains.add(ChainLum118())
-    chains.add(ChainLumera())
-    chains.add(ChainManifest())
-    chains.add(ChainMantle())
-    chains.add(ChainMantraEvm())
-    chains.add(ChainMantra())
-    chains.add(ChainMedibloc())
-    chains.add(ChainMilkyway())
-    chains.add(ChainMirage())
-    chains.add(ChainMonad())
-    chains.add(ChainMovement())
-    chains.add(ChainNeutron())
-    chains.add(ChainNibiru())
-    chains.add(ChainNillion())
-    chains.add(ChainNoble())
-    chains.add(ChainNolus())
-    chains.add(ChainNyx())
-    chains.add(ChainOktEvm())
-    chains.add(ChainOkt996Keccak())
-    chains.add(ChainOkt996Secp())
-    chains.add(ChainOrai())
-    chains.add(ChainOsmosis())
-    chains.add(ChainOptimism())
-    chains.add(ChainPaloma())
-    chains.add(ChainPassage())
-    chains.add(ChainPaxi())
-    chains.add(ChainPersistence118())
-    chains.add(ChainPersistence750())
-    chains.add(ChainPlanqEvm())
-    chains.add(ChainPocket())
-    chains.add(ChainPolygon())
-    chains.add(ChainProvenance())
-    chains.add(ChainPryzm())
-    chains.add(ChainPundix())
-    chains.add(ChainQubeticsEvm())
-    chains.add(ChainQuicksilver())
-    chains.add(ChainRealioEvm())
-    chains.add(ChainRegen())
-    chains.add(ChainRizon())
-    chains.add(ChainSaga())
-    chains.add(ChainScroll())
-    chains.add(ChainSecret529())
-    chains.add(ChainSecret118())
-    chains.add(ChainSeda())
-    chains.add(ChainSeiEvm())
-    chains.add(ChainSei())
-    chains.add(ChainSentinel())
-    chains.add(ChainShardeum())
-    chains.add(ChainShentu())
-    chains.add(ChainShidoEvm())
-    chains.add(ChainSommelier())
-    chains.add(ChainSolana())
-    chains.add(ChainSomnia())
-    chains.add(ChainSonic())
-    chains.add(ChainSource())
-    chains.add(ChainStargaze())
-    chains.add(ChainStory())
-    chains.add(ChainStratosEvm())
-    chains.add(ChainStride())
-    chains.add(ChainSui())
-    chains.add(ChainSunrise())
-    chains.add(ChainSynternet())
-    chains.add(ChainTenetEvm())
-    chains.add(ChainTeritori())
-    chains.add(ChainTerra())
-    chains.add(ChainTerraClassic())
-    chains.add(ChainThorchain())
-    chains.add(ChainUnification())
-    chains.add(ChainUnion())
-    chains.add(ChainUx())
-    chains.add(ChainWemix())
-    chains.add(ChainWorldCoin())
-    chains.add(ChainXion())
-    chains.add(ChainXplaEvm())
-    chains.add(ChainXpla())
-    chains.add(ChainXrplEvm())
-    chains.add(ChainZenrock())
-    chains.add(ChainZeroGravity())
-    chains.add(ChainZetaEvm())
-    chains.add(ChainZigChain())
-    chains.add(ChainZKsync())
 
-
-    chains.add(ChainAirchainsTestnet())
-    chains.add(ChainBabylonTestnet())
-    chains.add(ChainBitcoin84Testnet())
-    chains.add(ChainBitcoin86Testnet())
-    chains.add(ChainGnoTestnet())
-    chains.add(ChainInitiaTestnet())
-    chains.add(ChainInjectiveEvmTestnet())
-    chains.add(ChainLumeraTestnet())
-    chains.add(ChainMantraEvmTestnet())
-    chains.add(ChainMantraTestnet())
-    chains.add(ChainMonadTestnet())
-    chains.add(ChainNeutronTestnet())
-    chains.add(ChainNillionTestnet())
-    chains.add(ChainPharosTestnet())
-    chains.add(ChainQubeticsEvmTestnet())
-    chains.add(ChainTerraClassicTestnet())
-    chains.add(ChainWardenEvmTestnet())
-    chains.add(ChainXionTestnet())
-    chains.add(ChainXrplEvmTestnet())
-    chains.add(ChainZeroGravityEvmTestnet())
-    chains.add(ChainZigChainTestnet())
-    chains.add(ChainZkcloudTestnet())
-
-
-//    chains.add(ChainCosmosTestnet())
-//    chains.add(ChainArtelaTestnet())
-//    chains.add(ChainBerachainTestnet())
-//    chains.add(ChainBitcoin44Testnet())
-//    chains.add(ChainBitcoin49Testnet())
-//    chains.add(ChainSaharaAiEvmTestnet())
-//    chains.add(ChainStroyTestnet())
-//    chains.add(ChainTabichainTestnet())
-
-    chains.forEach { chain ->
-        if (chain.chainIdCosmos.isEmpty()) {
-            chain.getChainListParam()?.get("chain_id_cosmos")?.let { cosmosChainId ->
-                chain.chainIdCosmos = cosmosChainId.asString
-            }
-        }
-
-        if (chain.chainIdEvm.isEmpty()) {
-            chain.getChainListParam()?.get("chain_id_evm")?.let { evmChainId ->
-                chain.chainIdEvm = evmChainId.asString
-            }
-        }
-    }
-    if (!Prefs.displayLegacy) {
-        chains = chains.filter { it.isDefault }.toMutableList()
-    }
-    if (!Prefs.displayTestnet) {
-        chains = chains.filter { !it.isTestnet }.toMutableList()
-    }
-    return chains
-}
-
+fun allChains(): MutableList<BaseChain> = mutableListOf(ChainCnho())
 data class AccountKeyType(
     var pubkeyType: PubKeyType, var hdPath: String
 )
 
 val DEFAULT_DISPLAY_CHAIN = mutableListOf(
-    "cosmos118",
-    "bitcoin86",
-    "ethereum60",
-    "solana501",
-    "suiMainnet",
-    "neutron118",
-    "kava60",
-    "osmosis118",
-    "dydx118",
-    "atomone118",
-    "babylon118"
+    "cnho118"
 )
 
 val EVM_BASE_FEE = BigDecimal("588000000000000")

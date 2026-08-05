@@ -108,6 +108,7 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.TreeMap
 import java.util.concurrent.TimeUnit
+import wannabit.io.cosmostaion.data.model.res.Asset
 
 class DappActivity : BaseActivity() {
 
@@ -165,7 +166,7 @@ class DappActivity : BaseActivity() {
                 loadParam()
             }
             if (BaseData.assets?.isEmpty() == true) {
-                loadAsset()
+                // loadAsset()
             }
         }
 
@@ -2995,15 +2996,35 @@ class DappActivity : BaseActivity() {
         }
     }
 
-    private suspend fun loadAsset() {
-        when (val response = safeApiCall { RetrofitInstance.mintscanApi.asset() }) {
-            is NetworkResult.Success -> {
-                BaseData.assets = response.data.assets
-            }
+   // private suspend fun loadAsset() {
+    //    when (val response = safeApiCall { RetrofitInstance.mintscanApi.asset() }) {
+    //        is NetworkResult.Success -> {
+     //           BaseData.assets = response.data.assets
+     //       }
 
-            is NetworkResult.Error -> {}
-        }
-    }
+      //      is NetworkResult.Error -> {}
+      //  }
+   // }
+      private suspend fun loadAsset() {
+
+          // BaseData.assets = listOf(
+          //     Asset(
+          //         // This must match the apiName in ChainCnho.kt ("cnho")
+          //         chain = "cnho",
+          //         type = "staking",
+          //         denom = "ucnho",
+          //         name = "CNHO",
+          //         symbol = "CNHO",
+          //         description = "CNHO Native Token",
+          //         decimals = 6,
+          //         image = null,
+          //         coinGeckoId = null,
+          //         color = "#FFFFFF",
+          //         ibc_info = null
+          //     )
+          // )
+          // println("CNHO asset loaded = ${BaseData.assets}")
+      }
 }
 
 enum class DAppType {

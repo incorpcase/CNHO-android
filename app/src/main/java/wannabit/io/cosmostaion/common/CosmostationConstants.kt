@@ -11,7 +11,6 @@ object CosmostationConstants {
     const val ENCRYPT_PASSWORD_KEY = "PASSWORD_KEY"
 
     const val MINTSCAN_API_URL = "https://front.api.mintscan.io"
-    const val SKIP_API_URL = "https://api.skip.money/"
 
     // explorer & github
     const val EXPLORER_BASE_URL = "https://www.mintscan.io/"

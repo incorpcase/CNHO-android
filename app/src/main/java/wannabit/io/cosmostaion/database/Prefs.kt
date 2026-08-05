@@ -123,7 +123,7 @@ object Prefs {
         set(value) = preference.edit().putString(LAST_PARAM_TIME, value).apply()
 
     var currency: Int
-        get() = preference.getInt(LAST_CURRENCY, 0)
+        get() = preference.getInt(LAST_CURRENCY, 4)
         set(value) = preference.edit().putInt(LAST_CURRENCY, value).apply()
 
     var language: Int
