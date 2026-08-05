@@ -1,0 +1,80 @@
+Configuration on demand is an incubating feature.
+
+> Configure project :app
+[build] google-services plugin skipped (google-services.json not found).
+
+> Task :app:dependencies
+
+------------------------------------------------------------
+Project ':app'
+------------------------------------------------------------
+
+kapt
+\--- androidx.room:room-compiler:2.6.1
+     +--- androidx.room:room-common:2.6.1
+     |    +--- androidx.annotation:annotation:1.3.0
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22
+     |    |    +--- org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> 1.9.0
+     |    |    |    +--- org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0
+     |    |    |    \--- org.jetbrains:annotations:13.0
+     |    |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22
+     |    |         \--- org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> 1.9.0 (*)
+     |    +--- androidx.room:room-compiler:2.6.1 (c)
+     |    +--- androidx.room:room-compiler-processing:2.6.1 (c)
+     |    \--- androidx.room:room-migration:2.6.1 (c)
+     +--- androidx.room:room-compiler-processing:2.6.1
+     |    +--- com.google.auto:auto-common:0.11
+     |    |    \--- com.google.guava:guava:29.0-jre -> 31.1-jre
+     |    |         +--- com.google.guava:failureaccess:1.0.1
+     |    |         +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     |    |         +--- com.google.code.findbugs:jsr305:3.0.2
+     |    |         +--- org.checkerframework:checker-qual:3.12.0
+     |    |         +--- com.google.errorprone:error_prone_annotations:2.11.0
+     |    |         \--- com.google.j2objc:j2objc-annotations:1.3
+     |    +--- com.google.auto.value:auto-value-annotations:1.6.3
+     |    +--- com.google.devtools.ksp:symbol-processing-api:1.9.0-1.0.13
+     |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:1.9.0 (*)
+     |    +--- com.google.guava:guava:31.1-jre (*)
+     |    +--- com.intellij:annotations:12.0
+     |    +--- com.squareup:javapoet:1.13.0
+     |    +--- com.squareup:kotlinpoet:1.14.2
+     |    |    +--- org.jetbrains.kotlin:kotlin-reflect:1.8.21
+     |    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:1.8.21 -> 1.9.0 (*)
+     |    |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.21 -> 1.8.22 (*)
+     |    +--- com.squareup:kotlinpoet-javapoet:1.14.2
+     |    |    +--- com.squareup:kotlinpoet:1.14.2 (*)
+     |    |    +--- com.squareup:javapoet:1.13.0
+     |    |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.21 -> 1.8.22 (*)
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> 1.9.0 (*)
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22 (*)
+     |    +--- androidx.room:room-common:2.6.1 (c)
+     |    +--- androidx.room:room-compiler:2.6.1 (c)
+     |    \--- androidx.room:room-migration:2.6.1 (c)
+     +--- androidx.room:room-migration:2.6.1
+     |    +--- androidx.room:room-common:2.6.1 (*)
+     |    +--- com.google.code.gson:gson:2.9.0
+     |    +--- org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> 1.9.0 (*)
+     |    +--- androidx.room:room-common:2.6.1 (c)
+     |    +--- androidx.room:room-compiler:2.6.1 (c)
+     |    \--- androidx.room:room-compiler-processing:2.6.1 (c)
+     +--- com.google.auto:auto-common:0.11 (*)
+     +--- com.google.auto.value:auto-value-annotations:1.6.3
+     +--- com.google.devtools.ksp:symbol-processing-api:1.9.0-1.0.13 (*)
+     +--- com.intellij:annotations:12.0
+     +--- com.squareup:javapoet:1.13.0
+     +--- com.squareup:kotlinpoet:1.14.2 (*)
+     +--- com.squareup:kotlinpoet-javapoet:1.14.2 (*)
+     +--- commons-codec:commons-codec:1.15
+     +--- org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> 1.9.0 (*)
+     +--- org.xerial:sqlite-jdbc:3.41.2.2
+     +--- androidx.room:room-common:2.6.1 (c)
+     +--- androidx.room:room-compiler-processing:2.6.1 (c)
+     \--- androidx.room:room-migration:2.6.1 (c)
+
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 2s
+1 actionable task: 1 executed
