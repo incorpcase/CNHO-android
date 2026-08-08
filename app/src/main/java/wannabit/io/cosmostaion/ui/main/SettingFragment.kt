@@ -44,7 +44,6 @@ import wannabit.io.cosmostaion.databinding.FragmentSettingBinding
 import wannabit.io.cosmostaion.ui.main.dapp.DappActivity
 import wannabit.io.cosmostaion.ui.main.setting.NoticeActivity
 import wannabit.io.cosmostaion.ui.main.setting.SettingBottomFragment
-import wannabit.io.cosmostaion.ui.main.setting.StyleFragment
 import wannabit.io.cosmostaion.ui.main.setting.ThemeFragment
 import wannabit.io.cosmostaion.ui.main.setting.general.DevDialogActivity
 import wannabit.io.cosmostaion.ui.main.setting.general.PushManager
@@ -85,6 +84,8 @@ class SettingFragment : Fragment() {
     }
 
     private fun initView() {
+        Prefs.language = BaseUtils.LANGUAGE_ENGLISH
+        Prefs.currency = 4
         binding.apply {
             listOf(
                 accountView,
@@ -192,37 +193,25 @@ class SettingFragment : Fragment() {
             }
 
             languageView.setOnClickListener {
-                handleOneClickWithDelay(
-                    SettingBottomFragment.newInstance(null, SettingType.LANGUAGE)
-                )
+//                handleOneClickWithDelay(
+//                    SettingBottomFragment.newInstance(null, SettingType.LANGUAGE)
+//                )
             }
 
             currencyView.setOnClickListener {
-                handleOneClickWithDelay(
-                    SettingBottomFragment.newInstance(null, SettingType.CURRENCY)
-                )
-                parentFragmentManager.setFragmentResultListener(
-                    "currency", this@SettingFragment
-                ) { _, _ ->
-                    currency.text = BaseData.currencyName()
-                    walletViewModel.price(BaseData.currencyName(), true)
-                }
+//                handleOneClickWithDelay(
+//                    SettingBottomFragment.newInstance(null, SettingType.CURRENCY)
+//                )
+//                parentFragmentManager.setFragmentResultListener(
+//                    "currency", this@SettingFragment
+//                ) { _, _ ->
+//                    currency.text = BaseData.currencyName()
+//                    walletViewModel.price(BaseData.currencyName(), true)
+//                }
             }
 
             helpView.setOnClickListener {
-                val url = when (Prefs.language) {
-                    BaseUtils.LANGUAGE_KOREAN -> {
-                        Uri.parse("https://www.cosmostation.io/kr/support/mobile")
-                    }
-
-                    BaseUtils.LANGUAGE_JAPANESE -> {
-                        Uri.parse("https://www.cosmostation.io/jp/support/mobile")
-                    }
-
-                    else -> {
-                        Uri.parse("https://www.cosmostation.io/en/support/mobile")
-                    }
-                }
+                val url = Uri.parse("https://chat.cnho.io")
                 startActivity(
                     Intent(
                         Intent.ACTION_VIEW, url

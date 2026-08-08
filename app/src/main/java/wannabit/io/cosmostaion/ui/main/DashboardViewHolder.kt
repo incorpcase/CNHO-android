@@ -124,7 +124,7 @@ class DashboardViewHolder(
 
             BaseData.getAsset(chain.apiName, chain.getMainAssetDenom())?.let { asset ->
                 chainDenom.text = asset.symbol
-                chainPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId))
+                chainPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId), coinGeckoId = asset.coinGeckoId)
                 BaseData.lastUpDown(asset.coinGeckoId).let { lastUpDown ->
                     chainPriceStatus.priceChangeStatusColor(lastUpDown)
                     chainPriceStatus.text = priceChangeStatus(lastUpDown)
@@ -133,7 +133,7 @@ class DashboardViewHolder(
             } ?: run {
                 BaseData.getToken(chain, chain.apiName, chain.getMainAssetDenom())?.let { token ->
                     chainDenom.text = token.symbol
-                    chainPrice.text = formatAssetValue(BaseData.getPrice(token.coinGeckoId))
+                    chainPrice.text = formatAssetValue(BaseData.getPrice(token.coinGeckoId), coinGeckoId = token.coinGeckoId)
                     BaseData.lastUpDown(token.coinGeckoId).let { lastUpDown ->
                         chainPriceStatus.priceChangeStatusColor(lastUpDown)
                         chainPriceStatus.text = priceChangeStatus(lastUpDown)
@@ -265,7 +265,7 @@ class DashboardViewHolder(
 
             BaseData.getAsset(chain.apiName, chain.getMainAssetDenom())?.let { asset ->
                 chainDenom.text = asset.symbol
-                chainPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId))
+                chainPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId), coinGeckoId = asset.coinGeckoId)
                 BaseData.lastUpDown(asset.coinGeckoId).let { lastUpDown ->
                     chainPriceStatus.priceChangeStatusColor(lastUpDown)
                     chainPriceStatus.text = priceChangeStatus(lastUpDown)
@@ -274,7 +274,7 @@ class DashboardViewHolder(
             } ?: run {
                 BaseData.getToken(chain, chain.apiName, chain.getMainAssetDenom())?.let { token ->
                     chainDenom.text = token.symbol
-                    chainPrice.text = formatAssetValue(BaseData.getPrice(token.coinGeckoId))
+                    chainPrice.text = formatAssetValue(BaseData.getPrice(token.coinGeckoId), coinGeckoId = token.coinGeckoId)
                     BaseData.lastUpDown(token.coinGeckoId).let { lastUpDown ->
                         chainPriceStatus.priceChangeStatusColor(lastUpDown)
                         chainPriceStatus.text = priceChangeStatus(lastUpDown)
@@ -334,158 +334,6 @@ class DashboardViewHolder(
         }
     }
 
-    fun bind(chain: BaseChain) {
-        binding.apply {
-            dashView.setBackgroundResource(R.drawable.item_bg)
-            simpleChainImg.setChainLogo(chain)
-            simpleChainName.text = chain.getChainName()
-            handler.removeCallbacks(starEvmAddressAnimation)
-
-            simpleLayout.visibility = View.VISIBLE
-            proLayout.visibility = View.GONE
-            simpleSkeletonChainValue.visibility = View.VISIBLE
-            simpleChainValue.visibility = View.GONE
-            respondTxt.visibility = View.GONE
-
-            if (chain is ChainBitCoin86) {
-                chainBadge.visibility = View.VISIBLE
-                when (chain.accountKeyType.pubkeyType) {
-                    PubKeyType.BTC_NESTED_SEGWIT -> {
-                        chainBadge.defaultSet()
-                        chainBadge.text = context.getString(R.string.str_nested_segwit)
-                    }
-
-                    PubKeyType.BTC_LEGACY -> {
-                        chainBadge.defaultSet()
-                        chainBadge.text = context.getString(R.string.str_legacy)
-                    }
-
-                    PubKeyType.BTC_NATIVE_SEGWIT -> {
-                        chainBadge.setBackgroundResource(R.drawable.round_box_bit)
-                        chainBadge.setTextColor(
-                            ContextCompat.getColorStateList(
-                                context, R.color.color_base01
-                            )
-                        )
-                        chainBadge.text = context.getString(R.string.str_native_segwit)
-                    }
-
-                    else -> {
-                        chainBadge.setBackgroundResource(R.drawable.round_box_bit_taproot)
-                        chainBadge.setTextColor(
-                            ContextCompat.getColorStateList(
-                                context, R.color.color_base01
-                            )
-                        )
-                        chainBadge.text = context.getString(R.string.str_taproot)
-                    }
-                }
-
-            } else {
-                chainBadge.visibleOrGone(!chain.isDefault)
-                chainBadge.defaultSet()
-                chainBadge.text = context.getString(R.string.str_old)
-            }
-
-            when (chain.fetchState) {
-                FetchState.SUCCESS -> {
-                    simpleSkeletonChainValue.visibility = View.GONE
-                    simpleRespondTxt.visibility = View.GONE
-                    simpleChainValue.visibility = View.VISIBLE
-
-                    if (Prefs.hideValue) {
-                        simpleChainValue.text = "✱✱✱✱"
-                        simpleChainValue.textSize = 10f
-                    } else {
-                        simpleChainValue.text = formatAssetValue(chain.allValue(false) ?: BigDecimal.ZERO)
-                        simpleChainValue.textSize = 14f
-                    }
-                }
-
-                FetchState.FAIL -> {
-                    simpleSkeletonChainValue.visibility = View.GONE
-                    simpleRespondTxt.visibility = View.VISIBLE
-                    simpleChainValue.visibility = View.GONE
-                }
-
-                else -> {
-                    simpleSkeletonChainValue.visibility = View.VISIBLE
-                    simpleRespondTxt.visibility = View.GONE
-                    simpleChainValue.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    fun testnetBind(chain: BaseChain) {
-        binding.apply {
-            dashView.setBackgroundResource(R.drawable.item_bg)
-            simpleChainImg.setChainLogo(chain)
-            simpleChainName.text = chain.getChainName()
-            handler.removeCallbacks(starEvmAddressAnimation)
-
-            simpleLayout.visibility = View.VISIBLE
-            proLayout.visibility = View.GONE
-            simpleSkeletonChainValue.visibility = View.VISIBLE
-            simpleChainValue.visibility = View.GONE
-            respondTxt.visibility = View.GONE
-
-            if (chain is ChainBitCoin86) {
-                chainBadge.visibility = View.VISIBLE
-                if (chain.accountKeyType.pubkeyType == PubKeyType.BTC_NATIVE_SEGWIT) {
-                    chainBadge.setBackgroundResource(R.drawable.round_box_bit)
-                    chainBadge.setTextColor(
-                        ContextCompat.getColorStateList(
-                            context, R.color.color_base01
-                        )
-                    )
-                    chainBadge.text = context.getString(R.string.str_native_segwit)
-
-                } else {
-                    chainBadge.setBackgroundResource(R.drawable.round_box_bit_taproot)
-                    chainBadge.setTextColor(
-                        ContextCompat.getColorStateList(
-                            context, R.color.color_base01
-                        )
-                    )
-                    chainBadge.text = context.getString(R.string.str_taproot)
-                }
-
-            } else {
-                chainBadge.visibleOrGone(!chain.isDefault)
-                chainBadge.defaultSet()
-                chainBadge.text = context.getString(R.string.str_old)
-            }
-
-            when (chain.fetchState) {
-                FetchState.SUCCESS -> {
-                    simpleSkeletonChainValue.visibility = View.GONE
-                    simpleRespondTxt.visibility = View.GONE
-                    simpleChainValue.visibility = View.VISIBLE
-
-                    if (Prefs.hideValue) {
-                        simpleChainValue.text = "✱✱✱✱"
-                        simpleChainValue.textSize = 10f
-                    } else {
-                        simpleChainValue.text = formatAssetValue(chain.allValue(false) ?: BigDecimal.ZERO)
-                        simpleChainValue.textSize = 14f
-                    }
-                }
-
-                FetchState.FAIL -> {
-                    simpleSkeletonChainValue.visibility = View.GONE
-                    simpleRespondTxt.visibility = View.VISIBLE
-                    simpleChainValue.visibility = View.GONE
-                }
-
-                else -> {
-                    simpleSkeletonChainValue.visibility = View.VISIBLE
-                    simpleRespondTxt.visibility = View.GONE
-                    simpleChainValue.visibility = View.GONE
-                }
-            }
-        }
-    }
 }
 
 fun TextView.defaultSet() {

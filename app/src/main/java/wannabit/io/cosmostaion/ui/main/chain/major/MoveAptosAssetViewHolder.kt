@@ -29,7 +29,7 @@ class MoveAptosAssetViewHolder(
                 assetImg.clipToOutline = true
                 assetName.text = asset.symbol
 
-                assetPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId))
+                assetPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId), coinGeckoId = asset.coinGeckoId)
                 BaseData.lastUpDown(asset.coinGeckoId).let { lastUpDown ->
                     assetPriceChange.priceChangeStatusColor(lastUpDown)
                     assetPriceChange.text = priceChangeStatus(lastUpDown)

@@ -14,6 +14,7 @@ import com.cosmos.staking.v1beta1.StakingProto
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.zrchain.validation.HybridValidationProto
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import wannabit.io.cosmostaion.chain.BaseChain
@@ -58,9 +59,9 @@ class StakingInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initData()
         setUpStakeInfo()
         refreshData()
+        initData()
     }
 
     private fun initData() {
@@ -73,7 +74,12 @@ class StakingInfoFragment : Fragment() {
             }
         }
 
+        BaseData.baseAccount?.allChains?.firstOrNull { it.tag == selectedChain.tag }?.let {
+            selectedChain = it
+        }
+
         binding.apply {
+            refresher.isRefreshing = selectedChain.fetchState == FetchState.BUSY
             lifecycleScope.launch(Dispatchers.IO) {
                 when (selectedChain) {
                     is ChainInitia -> {
@@ -91,7 +97,7 @@ class StakingInfoFragment : Fragment() {
                             when {
                                 o1.delegation.validatorAddress == cosmostationValAddress -> -1
                                 o2.delegation.validatorAddress == cosmostationValAddress -> 1
-                                o1.balanceList.first { it.denom == selectedChain.getStakeAssetDenom() }.amount.toDouble() > o2.balanceList.first { it.denom == selectedChain.getStakeAssetDenom() }.amount.toDouble() -> -1
+                                o1.balanceList.firstOrNull { it.denom == selectedChain.getStakeAssetDenom() }?.amount?.toDouble() ?: 0.0 > o2.balanceList.firstOrNull { it.denom == selectedChain.getStakeAssetDenom() }?.amount?.toDouble() ?: 0.0 -> -1
                                 else -> 1
                             }
                         }
@@ -295,16 +301,21 @@ class StakingInfoFragment : Fragment() {
     }
 
     private fun setUpStakeInfo() {
+        ApplicationViewModel.shared.fetchedStakeResult.observe(viewLifecycleOwner) { tag ->
+            if (selectedChain.tag == tag) {
+                initData()
+            }
+        }
+
         ApplicationViewModel.shared.txFetchedResult.observe(viewLifecycleOwner) { tag ->
             if (selectedChain.tag == tag) {
-                ApplicationViewModel.shared.notifyTxEvent()
                 initData()
             }
         }
 
         ApplicationViewModel.shared.refreshStakingInfoFetchedResult.observe(viewLifecycleOwner) { tag ->
             if (selectedChain.tag == tag) {
-                ApplicationViewModel.shared.notifyRefreshEvent()
+                binding.refresher.isRefreshing = false
                 initData()
             }
         }

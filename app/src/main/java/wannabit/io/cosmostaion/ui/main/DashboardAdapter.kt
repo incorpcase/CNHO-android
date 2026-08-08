@@ -55,11 +55,7 @@ class DashboardAdapter(
             is DashboardViewHolder -> {
                 if (holder.itemViewType == VIEW_TYPE_MAINNET_ITEM) {
                     val chain = displayMainnetChains[position - 1]
-                    if (Prefs.style == 0) {
-                        holder.bind(chain)
-                    } else {
-                        holder.proBind(chain)
-                    }
+                    holder.proBind(chain)
 
                     holder.itemView.setOnClickListener {
                         listener.nodeDown(chain)
@@ -95,11 +91,7 @@ class DashboardAdapter(
 
                 } else {
                     val testnet = displayTestnetChains[position - (displayMainnetChains.size + 2)]
-                    if (Prefs.style == 0) {
-                        holder.testnetBind(testnet)
-                    } else {
-                        holder.testnetProBind(testnet)
-                    }
+                    holder.testnetProBind(testnet)
                     holder.itemView.setOnClickListener {
                         listener.nodeDown(testnet)
                     }

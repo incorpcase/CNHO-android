@@ -14,6 +14,7 @@ import wannabit.io.cosmostaion.chain.fetcher.debtUsdxValue
 import wannabit.io.cosmostaion.chain.evmClass.KAVA_MINT_IMG_URL
 import wannabit.io.cosmostaion.chain.fetcher.kavaOraclePrice
 import wannabit.io.cosmostaion.chain.fetcher.liquidationPrice
+import wannabit.io.cosmostaion.common.BaseData
 import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.formatAssetValue
 import wannabit.io.cosmostaion.databinding.ItemMyMintBinding
@@ -48,17 +49,18 @@ class MintMyViewHolder(
                     R.string.str_liquidation_price, collateralParam.denom.uppercase()
                 )
 
+                val asset = BaseData.getAsset("kava", collateralParam.denom)
                 val collateralValue = myCdp.collateralUSDXAmount()
                 val ltv = myCdp.UsdxLTV(collateralParam)
                 val borrowedValue = myCdp.debtUsdxValue()
-                myCollateral.text = formatAssetValue(collateralValue)
+                myCollateral.text = formatAssetValue(collateralValue, coinGeckoId = asset?.coinGeckoId)
                 myLtv.text = formatAssetValue(ltv)
                 myDebt.text = formatAssetValue(borrowedValue)
 
                 val currentPrice = priceFeed.kavaOraclePrice(collateralParam.liquidationMarketId)
                 val liquidationPrice = myCdp.liquidationPrice(collateralParam)
-                currentPriceTxt.text = formatAssetValue(currentPrice)
-                liquidation.text = formatAssetValue(liquidationPrice)
+                currentPriceTxt.text = formatAssetValue(currentPrice, coinGeckoId = asset?.coinGeckoId)
+                liquidation.text = formatAssetValue(liquidationPrice, coinGeckoId = asset?.coinGeckoId)
 
                 borrowedValue.divide(ltv, 18, RoundingMode.HALF_UP)?.movePointRight(2)
                     ?.setScale(2, RoundingMode.HALF_UP)?.let { riskRate ->

@@ -282,7 +282,7 @@ class MintActionFragment : BaseTxFragment() {
                             val value = price.multiply(dpAmount)
 
                             mintAmount.text = formatAmount(dpAmount.toPlainString(), decimal)
-                            mintValue.text = formatAssetValue(value)
+                            mintValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -297,7 +297,7 @@ class MintActionFragment : BaseTxFragment() {
                             val value = price.multiply(dpAmount)
 
                             mintAmount.text = formatAmount(dpAmount.toPlainString(), decimal)
-                            mintValue.text = formatAssetValue(value)
+                            mintValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -340,7 +340,7 @@ class MintActionFragment : BaseTxFragment() {
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
             }
         }

@@ -82,10 +82,7 @@ class SettingBottomFragment : BottomSheetDialogFragment() {
                 SettingType.LANGUAGE -> {
                     selectTitle.text = getString(R.string.str_select_language)
                     val languageList = listOf(
-                        getString(R.string.str_system),
-                        getString(R.string.title_language_en),
-                        getString(R.string.title_language_kr),
-                        getString(R.string.title_language_ja)
+                        getString(R.string.title_language_en)
                     )
 
                     settingAdapter = SettingBottomAdapter(SettingType.LANGUAGE)
@@ -95,7 +92,7 @@ class SettingBottomFragment : BottomSheetDialogFragment() {
                     settingAdapter.submitList(languageList)
 
                     settingAdapter.setOnItemClickListener {
-                        Prefs.language = it
+                        Prefs.language = it + 1
                         Prefs.foreToBack = false
                         dismiss()
                         requireActivity().recreate()
@@ -104,20 +101,24 @@ class SettingBottomFragment : BottomSheetDialogFragment() {
 
                 SettingType.CURRENCY -> {
                     selectTitle.text = getString(R.string.str_select_currency)
-                    val currencyList = resources.getStringArray(R.array.currency_unit_array)
+                    val currencyList = listOf("CNY")
 
                     settingAdapter = SettingBottomAdapter(SettingType.CURRENCY)
                     recycler.setHasFixedSize(true)
                     recycler.layoutManager = LinearLayoutManager(requireActivity())
                     recycler.adapter = settingAdapter
-                    settingAdapter.submitList(currencyList.toList())
+                    settingAdapter.submitList(currencyList)
 
                     settingAdapter.setOnItemClickListener {
-                        if (Prefs.currency != it) {
-                            Prefs.currency = it
+                        val selectedCurrency = currencyList[it]
+                        val allCurrencyList = resources.getStringArray(R.array.currency_unit_array).toList()
+                        val selectedIndex = allCurrencyList.indexOf(selectedCurrency)
+
+                        if (Prefs.currency != selectedIndex) {
+                            Prefs.currency = selectedIndex
                         }
                         val bundle = Bundle()
-                        bundle.putInt("currency", it)
+                        bundle.putInt("currency", selectedIndex)
                         parentFragmentManager.setFragmentResult("currency", bundle)
                         dismiss()
                     }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CNHO Wallet</string>
+    <string name="app_name">Cosmostation</string>
 
     <string name="str_chains" translatable="false">Chains</string>
     <string name="str_service" translatable="false">Service</string>

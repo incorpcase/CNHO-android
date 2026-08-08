@@ -128,6 +128,11 @@ class BabylonUnstakingFragment(
     }
 
     private fun observeViewModels() {
+        ApplicationViewModel.shared.refreshStakingInfoFetchedResult.observe(viewLifecycleOwner) {
+            binding.refresher.isRefreshing = false
+            initData()
+        }
+
         ApplicationViewModel.shared.notifyTxResult.observe(viewLifecycleOwner) {
             babylonViewModel.epochData(selectedChain)
             initData()

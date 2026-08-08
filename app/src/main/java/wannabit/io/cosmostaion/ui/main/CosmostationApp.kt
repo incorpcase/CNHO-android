@@ -22,6 +22,9 @@ import wannabit.io.cosmostaion.data.viewmodel.ApplicationViewModelProviderFactor
 import wannabit.io.cosmostaion.database.AppDatabase
 import wannabit.io.cosmostaion.database.CipherHelper
 import wannabit.io.cosmostaion.database.Prefs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class CosmostationApp : Application(), ViewModelStoreOwner {
@@ -50,14 +53,17 @@ class CosmostationApp : Application(), ViewModelStoreOwner {
         )[ApplicationViewModel::class.java]
 
         initialize()
-        FirebaseApp.initializeApp(this)
         System.loadLibrary("sqlcipher")
         setRandomBackgroundImage()
 
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
-        initWalletConnectV2()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            FirebaseApp.initializeApp(this@CosmostationApp)
+            initWalletConnectV2()
+        }
     }
 
     fun setRandomBackgroundImage() {

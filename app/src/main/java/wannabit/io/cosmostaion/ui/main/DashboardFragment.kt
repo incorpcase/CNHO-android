@@ -221,15 +221,13 @@ class DashboardFragment : Fragment() {
                                     safeContext, seed, chain.setParentPath, lastHDPath
                                 )
                             }
-                            if (Prefs.style == 1) {
-                                if (!chain.supportCosmos() && chain.evmAddress.isNotEmpty()) {
-                                    withContext(Dispatchers.Main) {
-                                        updateRowData(chain.tag)
-                                    }
-                                } else {
-                                    if (chain.address.isNotEmpty() || chain.mainAddress.isNotEmpty()) {
-                                        updateRowData(chain.tag)
-                                    }
+                            if (!chain.supportCosmos() && chain.evmAddress.isNotEmpty()) {
+                                withContext(Dispatchers.Main) {
+                                    updateRowData(chain.tag)
+                                }
+                            } else {
+                                if (chain.address.isNotEmpty() || chain.mainAddress.isNotEmpty()) {
+                                    updateRowData(chain.tag)
                                 }
                             }
 
@@ -244,15 +242,13 @@ class DashboardFragment : Fragment() {
                             if (chain.publicKey == null) {
                                 chain.setInfoWithPrivateKey(safeContext, privateKey)
                             }
-                            if (Prefs.style == 1) {
-                                if (!chain.supportCosmos() && chain.evmAddress.isNotEmpty()) {
-                                    withContext(Dispatchers.Main) {
-                                        updateRowData(chain.tag)
-                                    }
-                                } else {
-                                    if (chain.address.isNotEmpty() || chain.mainAddress.isNotEmpty()) {
-                                        updateRowData(chain.tag)
-                                    }
+                            if (!chain.supportCosmos() && chain.evmAddress.isNotEmpty()) {
+                                withContext(Dispatchers.Main) {
+                                    updateRowData(chain.tag)
+                                }
+                            } else {
+                                if (chain.address.isNotEmpty() || chain.mainAddress.isNotEmpty()) {
+                                    updateRowData(chain.tag)
                                 }
                             }
 

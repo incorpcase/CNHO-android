@@ -61,7 +61,7 @@ class LendListViewHolder(
                                 .setScale(decimal, RoundingMode.DOWN).toPlainString(), decimal
                         )
                         mySuppliedDenom.text = asset.symbol
-                        mySuppliedValue.text = formatAssetValue(myDepositValue)
+                        mySuppliedValue.text = formatAssetValue(myDepositValue, coinGeckoId = asset.coinGeckoId)
 
                         var myBorrowAmount = BigDecimal.ZERO
                         lendMyBorrows.forEach { coin ->
@@ -77,7 +77,7 @@ class LendListViewHolder(
                                 .setScale(decimal, RoundingMode.DOWN).toPlainString(), decimal
                         )
                         myBorrowedDenom.text = asset.symbol
-                        myBorrowedValue.text = formatAssetValue(myBorrowValue)
+                        myBorrowedValue.text = formatAssetValue(myBorrowValue, coinGeckoId = asset.coinGeckoId)
                     }
                 }
 

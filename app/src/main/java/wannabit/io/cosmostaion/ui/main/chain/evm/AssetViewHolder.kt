@@ -29,7 +29,7 @@ class AssetViewHolder(
                 assetImg.clipToOutline = true
                 assetName.text = asset.symbol
 
-                assetPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId))
+                assetPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId), coinGeckoId = asset.coinGeckoId)
                 BaseData.lastUpDown(asset.coinGeckoId).let { lastUpDown ->
                     assetPriceChange.priceChangeStatusColor(lastUpDown)
                     assetPriceChange.text = priceChangeStatus(lastUpDown)
@@ -82,7 +82,7 @@ class AssetViewHolder(
 
                         assetAmount.text = formatAmount(amount.toPlainString(), 6)
                         assetAmountValue.text = evmChain.evmRpcFetcher?.tokenValue(token.address)
-                            ?.let { formatAssetValue(it) }
+                            ?.let { formatAssetValue(it, coinGeckoId = token.coinGeckoId) }
                     }
                 }
         }

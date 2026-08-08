@@ -9,9 +9,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import wannabit.io.cosmostaion.R
+import wannabit.io.cosmostaion.chain.FetchState
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
 import wannabit.io.cosmostaion.common.BaseData
 import wannabit.io.cosmostaion.common.formatAssetValue
@@ -65,38 +67,42 @@ class MainStakeFragment : Fragment() {
     }
 
     private fun updateStakeValue() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val account = BaseData.baseAccount
-            val displayChains = account?.sortedDisplayChains()
-            val cnho = displayChains?.firstOrNull { it.tag == cnhoChain.tag } ?: cnhoChain
+        val account = BaseData.baseAccount
+        val cnho = account?.allChains?.firstOrNull { it.tag == cnhoChain.tag } ?: cnhoChain
 
-            val delegationValue = cnho.cosmosFetcher?.delegationValueSum() ?: BigDecimal.ZERO
-            val unbondingValue = cnho.cosmosFetcher?.unbondingValueSum() ?: BigDecimal.ZERO
-            val totalStakedValue = delegationValue.add(unbondingValue)
+        if (cnho.fetchState == FetchState.IDLE || cnho.fetchState == FetchState.FAIL) {
+            ApplicationViewModel.shared.loadChainData(cnho, account?.id ?: -1L, isRefresh = true)
+        }
 
-            val delegations = cnho.cosmosFetcher?.cosmosDelegations ?: mutableListOf()
-            val unbondings = cnho.cosmosFetcher?.cosmosUnbondings ?: mutableListOf()
+        val delegationValue = cnho.cosmosFetcher?.delegationValueSum() ?: BigDecimal.ZERO
+        val unbondingValue = cnho.cosmosFetcher?.unbondingValueSum() ?: BigDecimal.ZERO
+        val totalStakedValue = delegationValue.add(unbondingValue)
 
-            withContext(Dispatchers.Main) {
-                if (isAdded) {
-                    binding.stakedValue.text = formatAssetValue(totalStakedValue)
-                    if (delegations.isEmpty() && unbondings.isEmpty()) {
-                        binding.emptyStake.visibility = View.VISIBLE
-                        binding.stakingDataView.visibility = View.GONE
-                    } else {
-                        binding.emptyStake.visibility = View.GONE
-                        binding.stakingDataView.visibility = View.VISIBLE
-                    }
-                }
-            }
+        val delegations = cnho.cosmosFetcher?.cosmosDelegations ?: mutableListOf()
+        val unbondings = cnho.cosmosFetcher?.cosmosUnbondings ?: mutableListOf()
+
+        binding.stakedValue.text = formatAssetValue(totalStakedValue)
+        binding.swipeRefreshLayout.isRefreshing = false
+        if (delegations.isEmpty() && unbondings.isEmpty()) {
+            binding.emptyStake.visibility = View.VISIBLE
+            binding.stakingDataView.visibility = View.GONE
+        } else {
+            binding.emptyStake.visibility = View.GONE
+            binding.stakingDataView.visibility = View.VISIBLE
         }
     }
 
     private fun setUpClickAction() {
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            val account = BaseData.baseAccount
+            val cnho = account?.allChains?.firstOrNull { it.tag == cnhoChain.tag } ?: cnhoChain
+            cnho.fetchState = FetchState.IDLE
+            ApplicationViewModel.shared.loadChainData(cnho, account?.id ?: -1L, isRefresh = true)
+        }
+
         binding.btnStake.setOnClickListener {
             val account = BaseData.baseAccount
-            val displayChains = account?.sortedDisplayChains()
-            val cnho = displayChains?.firstOrNull { it.tag == cnhoChain.tag } ?: cnhoChain
+            val cnho = account?.allChains?.firstOrNull { it.tag == cnhoChain.tag } ?: cnhoChain
 
             StakingFragment.newInstance(cnho).show(
                 requireActivity().supportFragmentManager, StakingFragment::class.java.name
@@ -105,6 +111,12 @@ class MainStakeFragment : Fragment() {
     }
 
     private fun setUpObservers() {
+        ApplicationViewModel.shared.fetchedStakeResult.observe(viewLifecycleOwner) { tag ->
+            if (cnhoChain.tag == tag) {
+                updateStakeValue()
+            }
+        }
+
         ApplicationViewModel.shared.txFetchedResult.observe(viewLifecycleOwner) { tag ->
             if (cnhoChain.tag == tag) {
                 updateStakeValue()
@@ -123,8 +135,7 @@ class MainStakeFragment : Fragment() {
 
         override fun createFragment(position: Int): Fragment {
             val account = BaseData.baseAccount
-            val displayChains = account?.sortedDisplayChains()
-            val cnho = displayChains?.firstOrNull { it.tag == cnhoChain.tag } ?: cnhoChain
+            val cnho = account?.allChains?.firstOrNull { it.tag == cnhoChain.tag } ?: cnhoChain
 
             return if (position == 0) {
                 StakingInfoFragment.newInstance(cnho)

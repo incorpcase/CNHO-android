@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CNHO Wallet</string>
+    <string name="app_name">Cosmostation</string>
     <string name="str_today">今日</string>
     <string name="str_next">次</string>
     <string name="str_share_address">住所共有です</string>

@@ -13,7 +13,7 @@ class SettingBottomViewHolder(
     fun bind(item: String) {
         binding.apply {
             selectTitle.text = item
-            selectImg.visibleOrGone(Prefs.language == adapterPosition)
+            selectImg.visibleOrGone(Prefs.language == adapterPosition + 1)
         }
     }
 }

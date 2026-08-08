@@ -14,6 +14,7 @@ import com.cosmos.staking.v1beta1.StakingProto
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.zrchain.validation.HybridValidationProto
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import wannabit.io.cosmostaion.chain.BaseChain
@@ -58,9 +59,9 @@ class UnStakingInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initData()
         setUpStakeInfo()
         refreshData()
+        initData()
     }
 
     private fun initData() {
@@ -73,7 +74,12 @@ class UnStakingInfoFragment : Fragment() {
             }
         }
 
+        BaseData.baseAccount?.allChains?.firstOrNull { it.tag == selectedChain.tag }?.let {
+            selectedChain = it
+        }
+
         binding.apply {
+            refresher.isRefreshing = selectedChain.fetchState == FetchState.BUSY
             lifecycleScope.launch(Dispatchers.IO) {
                 when (selectedChain) {
                     is ChainInitia -> {
@@ -271,12 +277,23 @@ class UnStakingInfoFragment : Fragment() {
     }
 
     private fun setUpStakeInfo() {
-        ApplicationViewModel.shared.notifyTxResult.observe(viewLifecycleOwner) {
-            initData()
+        ApplicationViewModel.shared.fetchedStakeResult.observe(viewLifecycleOwner) { tag ->
+            if (selectedChain.tag == tag) {
+                initData()
+            }
         }
 
-        ApplicationViewModel.shared.notifyRefreshResult.observe(viewLifecycleOwner) {
-            initData()
+        ApplicationViewModel.shared.txFetchedResult.observe(viewLifecycleOwner) { tag ->
+            if (selectedChain.tag == tag) {
+                initData()
+            }
+        }
+
+        ApplicationViewModel.shared.refreshStakingInfoFetchedResult.observe(viewLifecycleOwner) { tag ->
+            if (selectedChain.tag == tag) {
+                binding.refresher.isRefreshing = false
+                initData()
+            }
         }
     }
 

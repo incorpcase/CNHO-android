@@ -43,7 +43,7 @@ class BabylonCoinViewHolder(
                     tokenImg.setTokenImg(asset)
                     tokenName.text = asset.symbol
 
-                    tokenPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId))
+                    tokenPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId), coinGeckoId = asset.coinGeckoId)
                     BaseData.lastUpDown(asset.coinGeckoId).let { lastUpDown ->
                         tokenPriceChange.priceChangeStatusColor(lastUpDown)
                         tokenPriceChange.text = priceChangeStatus(lastUpDown)

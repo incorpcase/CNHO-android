@@ -860,6 +860,12 @@ class CoinFragment : Fragment(), CoinFragmentInteraction {
                 initData()
             }
         }
+
+        ApplicationViewModel.shared.fetchedStakeResult.observe(viewLifecycleOwner) { tag ->
+            if (selectedChain.tag == tag) {
+                initData()
+            }
+        }
     }
 
     private fun startTransfer(chain: BaseChain, denom: String, sendAssetType: SendAssetType) {

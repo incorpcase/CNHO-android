@@ -762,7 +762,7 @@ class CommonTransferFragment : BaseTxFragment() {
                         val value = price.multiply(dpAmount)
                         sendAmount.text = formatAmount(dpAmount.toPlainString(), 18)
                         sendDenom.text = toSendAsset?.symbol
-                        sendValue.text = formatAssetValue(value)
+                        sendValue.text = formatAssetValue(value, coinGeckoId = toSendAsset?.coinGeckoId)
                     }
 
                     SendAssetType.ONLY_COSMOS_COIN -> {
@@ -775,7 +775,7 @@ class CommonTransferFragment : BaseTxFragment() {
                                 formatAmount(dpAmount.toPlainString(), asset.decimals ?: 6)
                             sendDenom.text = asset.symbol?.uppercase()
                             sendDenom.setTextColor(asset.assetColor())
-                            sendValue.text = formatAssetValue(value)
+                            sendValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
 
@@ -786,33 +786,35 @@ class CommonTransferFragment : BaseTxFragment() {
                             val value = price.multiply(dpAmount)
                             sendAmount.text = formatAmount(dpAmount.toPlainString(), token.decimals)
                             sendDenom.text = token.symbol
-                            sendValue.text = formatAssetValue(value)
+                            sendValue.text = formatAssetValue(value, coinGeckoId = token.coinGeckoId)
                         }
                     }
 
                     SendAssetType.SUI_COIN -> {
                         (fromChain as ChainSui).apply {
-                            val price = BaseData.getPrice(assetGeckoId(toSendDenom))
+                            val coinGeckoId = assetGeckoId(toSendDenom)
+                            val price = BaseData.getPrice(coinGeckoId)
                             val dpAmount =
                                 toAmount.toBigDecimal().amountHandlerLeft(assetDecimal(toSendDenom))
                             val value = price.multiply(dpAmount)
                             sendAmount.text =
                                 formatAmount(dpAmount.toPlainString(), assetDecimal(toSendDenom))
                             sendDenom.text = assetSymbol(toSendDenom)
-                            sendValue.text = formatAssetValue(value)
+                            sendValue.text = formatAssetValue(value, coinGeckoId = coinGeckoId)
                         }
                     }
 
                     SendAssetType.IOTA_COIN -> {
                         (fromChain as ChainIota).apply {
-                            val price = BaseData.getPrice(assetGeckoId(toSendDenom))
+                            val coinGeckoId = assetGeckoId(toSendDenom)
+                            val price = BaseData.getPrice(coinGeckoId)
                             val dpAmount =
                                 toAmount.toBigDecimal().amountHandlerLeft(assetDecimal(toSendDenom))
                             val value = price.multiply(dpAmount)
                             sendAmount.text =
                                 formatAmount(dpAmount.toPlainString(), assetDecimal(toSendDenom))
                             sendDenom.text = assetSymbol(toSendDenom)
-                            sendValue.text = formatAssetValue(value)
+                            sendValue.text = formatAssetValue(value, coinGeckoId = coinGeckoId)
                         }
                     }
 
@@ -823,7 +825,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             val value = price.multiply(dpAmount)
                             sendAmount.text = formatAmount(dpAmount.toPlainString(), 8)
                             sendDenom.text = fromChain.getMainAssetSymbol()
-                            sendValue.text = formatAssetValue(value)
+                            sendValue.text = formatAssetValue(value, coinGeckoId = toSendAsset?.coinGeckoId)
                         }
                     }
 
@@ -837,7 +839,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             sendAmount.text =
                                 formatAmount(dpAmount.toPlainString(), toSendAsset?.decimals ?: 9)
                             sendDenom.text = fromChain.coinSymbol
-                            sendValue.text = formatAssetValue(value)
+                            sendValue.text = formatAssetValue(value, coinGeckoId = toSendAsset?.coinGeckoId)
                         }
                     }
 
@@ -851,7 +853,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             sendAmount.text =
                                 formatAmount(dpAmount.toPlainString(), toSendToken?.decimals ?: 9)
                             sendDenom.text = toSendToken?.symbol
-                            sendValue.text = formatAssetValue(value)
+                            sendValue.text = formatAssetValue(value, coinGeckoId = toSendToken?.coinGeckoId)
                         }
                     }
 
@@ -864,7 +866,7 @@ class CommonTransferFragment : BaseTxFragment() {
                         sendAmount.text =
                             formatAmount(dpAmount.toPlainString(), toSendAsset?.decimals ?: 8)
                         sendDenom.text = toSendAsset?.symbol
-                        sendValue.text = formatAssetValue(value)
+                        sendValue.text = formatAssetValue(value, coinGeckoId = toSendAsset?.coinGeckoId)
                     }
 
                     else -> {}
@@ -927,7 +929,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             val value = price.multiply(dpBudget)
 
                             feeAmount.text = formatAmount(dpBudget.toPlainString(), 9)
-                            feeValue.text = formatAssetValue(value)
+                            feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -944,7 +946,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             val value = price.multiply(dpBudget)
 
                             feeAmount.text = formatAmount(dpBudget.toPlainString(), 9)
-                            feeValue.text = formatAssetValue(value)
+                            feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -960,7 +962,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             val value = price.multiply(amount)
 
                             feeAmount.text = formatAmount(amount.toPlainString(), 8)
-                            feeValue.text = formatAssetValue(value)
+                            feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -979,7 +981,7 @@ class CommonTransferFragment : BaseTxFragment() {
 
                             feeAmount.text =
                                 formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                            feeValue.text = formatAssetValue(value)
+                            feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -998,7 +1000,7 @@ class CommonTransferFragment : BaseTxFragment() {
 
                             feeAmount.text =
                                 formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                            feeValue.text = formatAssetValue(value)
+                            feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -1016,7 +1018,7 @@ class CommonTransferFragment : BaseTxFragment() {
 
                             feeAmount.text =
                                 formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                            feeValue.text = formatAssetValue(value)
+                            feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }

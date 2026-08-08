@@ -39,13 +39,11 @@ object BaseData {
     var isBackGround = false
     var appSchemeUrl = ""
 
+    var cnhoPrice: Double = 1.0
+
     fun getPrice(coinGeckoId: String?, isUsd: Boolean? = false): BigDecimal {
         if (coinGeckoId == "cnho") {
-            return if (Prefs.currency == 4 && isUsd == false) {
-                BigDecimal.ONE.setScale(12, RoundingMode.HALF_DOWN)
-            } else {
-                BigDecimal("0.14").setScale(12, RoundingMode.HALF_DOWN)
-            }
+            return cnhoPrice.toBigDecimal().setScale(12, RoundingMode.HALF_DOWN)
         }
         val price = if (isUsd == true) {
             usdPrices?.firstOrNull { it.coinGeckoId == coinGeckoId }
@@ -60,6 +58,10 @@ object BaseData {
     }
 
     fun lastUpDown(coinGeckoId: String?): BigDecimal {
+        if (coinGeckoId == "cnho") {
+            return ((cnhoPrice - 1.0) / 1.0 * 100).toBigDecimal()
+                .setScale(2, RoundingMode.HALF_DOWN)
+        }
         val price = prices?.firstOrNull { it.coinGeckoId == coinGeckoId }
         if (price != null) {
             return (price.daily_price_change_in_percent ?: 0.0).toBigDecimal()

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CNHO Wallet</string>
+    <string name="app_name">Cosmostation</string>
 
     <string name="str_today">오늘</string>
     <string name="str_next">다음</string>

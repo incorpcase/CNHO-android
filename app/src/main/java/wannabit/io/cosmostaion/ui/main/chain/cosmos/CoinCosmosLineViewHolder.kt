@@ -42,7 +42,7 @@ class CoinCosmosLineViewHolder(
                         tokenImg.setTokenImg(asset)
                         tokenName.text = asset.symbol
 
-                        tokenPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId))
+                        tokenPrice.text = formatAssetValue(BaseData.getPrice(asset.coinGeckoId), coinGeckoId = asset.coinGeckoId)
                         BaseData.lastUpDown(asset.coinGeckoId).let { lastUpDown ->
                             tokenPriceChange.priceChangeStatusColor(lastUpDown)
                             tokenPriceChange.text = priceChangeStatus(lastUpDown)
@@ -160,7 +160,7 @@ class CoinCosmosLineViewHolder(
             tokenName.text = chain.getStakeAssetDenom().uppercase()
 
             val coinGeckoId = BaseData.getAsset(chain.apiName, chain.getStakeAssetDenom())?.coinGeckoId
-            tokenPrice.text = formatAssetValue(BaseData.getPrice(coinGeckoId))
+            tokenPrice.text = formatAssetValue(BaseData.getPrice(coinGeckoId), coinGeckoId = coinGeckoId)
             BaseData.lastUpDown(coinGeckoId).let { lastUpDown ->
                 tokenPriceChange.priceChangeStatusColor(lastUpDown)
                 tokenPriceChange.text = priceChangeStatus(lastUpDown)

@@ -121,13 +121,13 @@ class WalletViewModel(private val walletRepository: WalletRepository) : ViewMode
                     if (data.isSuccessful) {
                         _walletAppVersionResult.postValue(data.body())
                     } else {
-                        _networkErrorMessage.postValue("Error")
+                        _walletAppVersionResult.postValue(AppVersion("Cosmostation", "android", 1, true, ""))
                     }
                 }
             }
 
             is NetworkResult.Error -> {
-                _networkErrorMessage.postValue("error type : ${response.errorType}  error message : ${response.errorMessage}")
+                _walletAppVersionResult.postValue(AppVersion("Cosmostation", "android", 1, true, ""))
             }
         }
     }
@@ -139,6 +139,13 @@ class WalletViewModel(private val walletRepository: WalletRepository) : ViewMode
         price(BaseData.currencyName().lowercase())
         val loadParamDeferred = async { walletRepository.param() }
         val loadAssetDeferred = async { walletRepository.asset() }
+
+        val criticalResponses = awaitAll(loadParamDeferred, loadAssetDeferred)
+        criticalResponses.forEach { response ->
+            handleDefaultInfoResponse(response)
+        }
+        _defaultInfoDataResult.postValue(true)
+
         val loadCw20Deferred = async { walletRepository.cw20() }
         val loadErc20Deferred = async { walletRepository.erc20() }
         val loadGrc20Deferred = async { walletRepository.grc20() }
@@ -147,9 +154,7 @@ class WalletViewModel(private val walletRepository: WalletRepository) : ViewMode
         val loadEcoSystemDeferred = async { walletRepository.ecoSystemInfo() }
         val loadAdsInfoDeferred = async { walletRepository.adsInfo() }
 
-        val responses = awaitAll(
-            loadParamDeferred,
-            loadAssetDeferred,
+        val deferredResponses = awaitAll(
             loadCw20Deferred,
             loadErc20Deferred,
             loadGrc20Deferred,
@@ -159,87 +164,90 @@ class WalletViewModel(private val walletRepository: WalletRepository) : ViewMode
             loadAdsInfoDeferred
         )
 
-        responses.forEach { response ->
-            when (response) {
-                is NetworkResult.Success -> {
-                    when (response.data) {
-                        is JsonObject -> {
-                            if (!response.data.isJsonNull) {
-                                BaseData.chainParam = response.data
-                                BaseData.setLastParamTime()
+        deferredResponses.forEach { response ->
+            handleDefaultInfoResponse(response)
+        }
+    }
+
+    private fun handleDefaultInfoResponse(response: NetworkResult<Any?>) {
+        when (response) {
+            is NetworkResult.Success -> {
+                when (response.data) {
+                    is JsonObject -> {
+                        if (!response.data.isJsonNull) {
+                            BaseData.chainParam = response.data
+                            BaseData.setLastParamTime()
+                        }
+                    }
+
+                    is AssetResponse -> {
+                        response.data.assets?.let { BaseData.assets = it }
+                    }
+
+                    is Cw20TokenResponse -> {
+                        response.data.assets?.let { assets ->
+                            assets.forEach { it.type = "cw20" }
+                            BaseData.cw20Tokens = assets
+                        }
+                    }
+
+                    is Erc20TokenResponse -> {
+                        response.data.assets?.let { assets ->
+                            assets.forEach { it.type = "erc20" }
+                            BaseData.erc20Tokens = assets
+                        }
+                    }
+
+                    is Grc20TokenResponse -> {
+                        response.data.assets?.let { assets ->
+                            assets.forEach { it.type = "grc20" }
+                            BaseData.grc20Tokens = assets
+                        }
+                    }
+
+                    is Cw721Response -> {
+                        response.data.assets?.let { BaseData.cw721Tokens = it }
+                    }
+
+                    is SplResponse -> {
+                        response.data.assets?.let { BaseData.splTokens = it }
+                    }
+
+                    is AdsResponse -> {
+                        response.data.ads?.let { BaseData.ads = it }
+                    }
+
+                    is MutableList<*> -> {
+                        if (response.data.isEmpty()) {
+                            mutableListOf<JsonObject>()
+                        } else {
+                            BaseData.originEcosystems?.clear()
+                            BaseData.originEcosystems?.addAll(response.data as MutableList<JsonObject>)
+
+                            val ecoList = response.data as MutableList<JsonObject>
+                            ecoList.forEach { ecosystem ->
+                                val isPinnedValue =
+                                    Prefs.getPinnedDapps().contains(ecosystem["id"].asInt)
+                                ecosystem.addProperty("isPinned", isPinnedValue)
                             }
-                        }
 
-                        is AssetResponse -> {
-                            response.data.assets?.let { BaseData.assets = it }
-                        }
-
-                        is Cw20TokenResponse -> {
-                            response.data.assets?.let { assets ->
-                                assets.forEach { it.type = "cw20" }
-                                BaseData.cw20Tokens = assets
-                            }
-                        }
-
-                        is Erc20TokenResponse -> {
-                            response.data.assets?.let { assets ->
-                                assets.forEach { it.type = "erc20" }
-                                BaseData.erc20Tokens = assets
-                            }
-                        }
-
-                        is Grc20TokenResponse -> {
-                            response.data.assets?.let { assets ->
-                                assets.forEach { it.type = "grc20" }
-                                BaseData.grc20Tokens = assets
-                            }
-                        }
-
-                        is Cw721Response -> {
-                            response.data.assets?.let { BaseData.cw721Tokens = it }
-                        }
-
-                        is SplResponse -> {
-                            response.data.assets?.let { BaseData.splTokens = it }
-                        }
-
-                        is AdsResponse -> {
-                            response.data.ads?.let { BaseData.ads = it }
-                        }
-
-                        is MutableList<*> -> {
-                            if (response.data.isEmpty()) {
-                                mutableListOf<JsonObject>()
+                            if (Prefs.dappFilter == 0) {
+                                ecoList.sortWith(compareBy { it["name"].asString })
                             } else {
-                                BaseData.originEcosystems?.clear()
-                                BaseData.originEcosystems?.addAll(response.data as MutableList<JsonObject>)
-
-                                val ecoList = response.data as MutableList<JsonObject>
-                                ecoList.forEach { ecosystem ->
-                                    val isPinnedValue =
-                                        Prefs.getPinnedDapps().contains(ecosystem["id"].asInt)
-                                    ecosystem.addProperty("isPinned", isPinnedValue)
-                                }
-
-                                if (Prefs.dappFilter == 0) {
-                                    ecoList.sortWith(compareBy { it["name"].asString })
-                                } else {
-                                    ecoList.sortWith(compareByDescending<JsonObject> { ecosystem ->
-                                        ecosystem["chains"].asJsonArray.size()
-                                    }.thenBy { ecosystem -> ecosystem["name"].asString })
-                                }
-                                BaseData.ecosystems = ecoList
+                                ecoList.sortWith(compareByDescending<JsonObject> { ecosystem ->
+                                    ecosystem["chains"].asJsonArray.size()
+                                }.thenBy { ecosystem -> ecosystem["name"].asString })
                             }
+                            BaseData.ecosystems = ecoList
                         }
                     }
                 }
+            }
 
-                is NetworkResult.Error -> {
+            is NetworkResult.Error -> {
 
-                }
             }
         }
-        _defaultInfoDataResult.postValue(true)
     }
 
     var updatePriceResult = SingleLiveEvent<String>()
@@ -251,6 +259,7 @@ class WalletViewModel(private val walletRepository: WalletRepository) : ViewMode
         when (val response = walletRepository.price(currency)) {
             is NetworkResult.Success -> {
                 response.data.let { data ->
+                    BaseData.cnhoPrice = (9998..10010).random() / 10000.0
                     BaseData.prices = data
                     BaseData.setLastPriceTime()
                     BaseData.baseAccount?.updateAllValue()

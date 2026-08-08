@@ -48,6 +48,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -106,17 +108,18 @@ fun formatAmount(input: String, decimal: Int): SpannableString {
     return spannableString
 }
 
-fun assetValue(value: BigDecimal, isUsd: Boolean? = false): SpannableString {
+fun assetValue(value: BigDecimal, isUsd: Boolean? = false, coinGeckoId: String? = ""): SpannableString {
+    val decimal = if (coinGeckoId == "cnho") 4 else 3
     val formatted = if (isUsd == true) {
-        "$" + " " + getDecimalFormat(3).format(value)
+        "$" + " " + getDecimalFormat(decimal).format(value)
     } else {
-        BaseData.currencySymbol() + " " + getDecimalFormat(3).format(value)
+        BaseData.currencySymbol() + " " + getDecimalFormat(decimal).format(value)
     }
-    return formatString(formatted, 3)
+    return formatString(formatted, decimal)
 }
 
-fun formatAssetValue(value: BigDecimal, isUsd: Boolean? = false): SpannableString {
-    val spannableString = assetValue(value, isUsd)
+fun formatAssetValue(value: BigDecimal, isUsd: Boolean? = false, coinGeckoId: String? = ""): SpannableString {
+    val spannableString = assetValue(value, isUsd, coinGeckoId)
     spannableString.setSpan(RelativeSizeSpan(0.8f), 0, 1, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
     return spannableString
 }
@@ -901,12 +904,18 @@ fun List<BigInteger>.mean(): BigInteger? {
     return sum / size.toString().toBigInteger()
 }
 
-fun <T> Sequence<T>.concurrentForEach(operation: suspend (T) -> Unit): Job {
+fun <T> Sequence<T>.concurrentForEach(
+    limit: Int = 10,
+    operation: suspend (T) -> Unit
+): Job {
+    val semaphore = Semaphore(limit)
     return CoroutineScope(Dispatchers.Default).launch {
         val jobs = mutableListOf<Job>()
         for (element in this@concurrentForEach) {
             val job = launch {
-                operation(element)
+                semaphore.withPermit {
+                    operation(element)
+                }
             }
             jobs.add(job)
         }

@@ -490,14 +490,48 @@ fun JsonObject.unDelegations(): MutableList<UnbondingDelegation> {
         for (j in 0 until unBonding.asJsonObject["entries"].asJsonArray.size()) {
             val entry = unBonding.asJsonObject["entries"].asJsonArray[j]
             val height = entry.asJsonObject["creation_height"].asString.toLong()
-            entry.asJsonObject["completion_time"].asString?.let { date ->
-                val dpTime = dateToLong("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSX", date)
-                val time = Timestamp.newBuilder().setSeconds(dpTime / 1000).build()
-                val tempEntry =
-                    StakingProto.UnbondingDelegationEntry.newBuilder().setCreationHeight(height)
-                        .setBalance(entry.asJsonObject["balance"].asString).setCompletionTime(time)
-                        .build()
-                entries.add(tempEntry)
+            try {
+                entry.asJsonObject["completion_time"].asString?.let { date ->
+                    val dpTime = try {
+                        dateToLong("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSX", date)
+                    } catch (e: Exception) {
+                        dateToLong("yyyy-MM-dd'T'HH:mm:ssX", date)
+                    }
+                    val time = Timestamp.newBuilder().setSeconds(dpTime / 1000).build()
+                    val balance = if (entry.asJsonObject.has("balance")) {
+                        entry.asJsonObject["balance"].asString
+                    } else if (entry.asJsonObject.has("initial_balance")) {
+                        entry.asJsonObject["initial_balance"].asString
+                    } else {
+                        "0"
+                    }
+                    val tempEntry =
+                        StakingProto.UnbondingDelegationEntry.newBuilder().setCreationHeight(height)
+                            .setBalance(balance).setCompletionTime(time)
+                            .build()
+                    entries.add(tempEntry)
+                }
+            } catch (e: Exception) {
+                entry.asJsonObject["completion_time"].asString?.let { date ->
+                    val dpTime = try {
+                        dateToLong("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'", date)
+                    } catch (e: Exception) {
+                        dateToLong("yyyy-MM-dd'T'HH:mm:ss'Z'", date)
+                    }
+                    val time = Timestamp.newBuilder().setSeconds(dpTime / 1000).build()
+                    val balance = if (entry.asJsonObject.has("balance")) {
+                        entry.asJsonObject["balance"].asString
+                    } else if (entry.asJsonObject.has("initial_balance")) {
+                        entry.asJsonObject["initial_balance"].asString
+                    } else {
+                        "0"
+                    }
+                    val tempEntry =
+                        StakingProto.UnbondingDelegationEntry.newBuilder().setCreationHeight(height)
+                            .setBalance(balance).setCompletionTime(time)
+                            .build()
+                    entries.add(tempEntry)
+                }
             }
         }
         val unBondingResponse = UnbondingDelegation.newBuilder()

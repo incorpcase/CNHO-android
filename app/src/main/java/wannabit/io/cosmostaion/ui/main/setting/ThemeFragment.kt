@@ -6,12 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import wannabit.io.cosmostaion.R
-import wannabit.io.cosmostaion.databinding.FragmentStyleBinding
+import wannabit.io.cosmostaion.databinding.FragmentThemeBinding
 import wannabit.io.cosmostaion.ui.tx.genTx.BaseTxFragment
 
 class ThemeFragment : BaseTxFragment() {
 
-    private var _binding: FragmentStyleBinding? = null
+    private var _binding: FragmentThemeBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var themeAdapter: ThemeAdapter
@@ -19,7 +19,7 @@ class ThemeFragment : BaseTxFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentStyleBinding.inflate(layoutInflater, container, false)
+        _binding = FragmentThemeBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
 

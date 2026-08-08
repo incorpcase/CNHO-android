@@ -30,7 +30,7 @@ class SvmTokenViewHolderr(
                     assetImg.clipToOutline = true
                     assetName.text = splToken.symbol
 
-                    assetPrice.text = formatAssetValue(BaseData.getPrice(splToken.coinGeckoId))
+                    assetPrice.text = formatAssetValue(BaseData.getPrice(splToken.coinGeckoId), coinGeckoId = splToken.coinGeckoId)
                     BaseData.lastUpDown(splToken.coinGeckoId).let { lastUpDown ->
                         assetPriceChange.priceChangeStatusColor(lastUpDown)
                         assetPriceChange.text = priceChangeStatus(lastUpDown)

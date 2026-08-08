@@ -31,7 +31,7 @@ class TokenViewHolder(
                     tokenImg.clipToOutline = true
                     tokenName.text = token.symbol
 
-                    tokenPrice.text = formatAssetValue(BaseData.getPrice(token.coinGeckoId))
+                    tokenPrice.text = formatAssetValue(BaseData.getPrice(token.coinGeckoId), coinGeckoId = token.coinGeckoId)
                     BaseData.lastUpDown(token.coinGeckoId).let { lastUpDown ->
                         tokenPriceChange.priceChangeStatusColor(lastUpDown)
                         tokenPriceChange.text = priceChangeStatus(lastUpDown)

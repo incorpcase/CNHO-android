@@ -6,6 +6,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.cosmos.base.v1beta1.CoinProto
+import com.cosmos.distribution.v1beta1.DistributionProto
+import com.cosmos.staking.v1beta1.StakingProto
+import com.cosmwasm.wasm.v1.QueryProto.QuerySmartContractStateResponse
+import com.zrchain.validation.HybridValidationProto
+import com.zrchain.validation.StakingProto as ZenrockStakingProto
+import com.initia.mstaking.v1.StakingProto as InitiaStakingProto
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.grpc.ManagedChannel
@@ -77,6 +83,7 @@ class ApplicationViewModel(
             is NetworkResult.Success -> {
                 response.data.let { data ->
                     BaseData.prices = data
+                    BaseData.cnhoPrice = (9998..10010).random() / 10000.0
                     BaseData.setLastPriceTime()
                     BaseData.baseAccount?.updateAllValue()
                     updatePriceResult.postValue(currency)
@@ -233,18 +240,18 @@ class ApplicationViewModel(
                     ?: mutableListOf()
 
             when (this) {
-                is ChainBitCoin86 -> loadBtcData(baseAccountId, this, isEdit)
-                is ChainOkt996Keccak -> loadOktLcdData(this, baseAccountId, isEdit)
+                is ChainBitCoin86 -> loadBtcData(baseAccountId, this, isEdit, isTx, isRefresh)
+                is ChainOkt996Keccak -> loadOktLcdData(this, baseAccountId, isEdit, isTx, isRefresh)
                 is ChainSui -> loadSuiData(baseAccountId, this, isEdit, isTx, isRefresh)
                 is ChainIota -> loadIotaData(baseAccountId, this, isEdit, isTx, isRefresh)
-                is ChainGnoTestnet -> loadRpcData(this, baseAccountId, isEdit)
-                is ChainSolana -> loadSolData(baseAccountId, this, isEdit)
-                is ChainAptos, is ChainMovement -> loadAptosData(baseAccountId, this, isEdit)
+                is ChainGnoTestnet -> loadRpcData(this, baseAccountId, isEdit, isTx, isRefresh)
+                is ChainSolana -> loadSolData(baseAccountId, this, isEdit, isTx, isRefresh)
+                is ChainAptos, is ChainMovement -> loadAptosData(baseAccountId, this, isEdit, isTx, isRefresh)
                 else -> {
                     if (supportCosmos() && this !is ChainOktEvm) {
                         loadGrpcAuthData(this, baseAccountId, isEdit, isTx, isRefresh)
                     } else {
-                        loadEvmChainData(this, baseAccountId, isEdit)
+                        loadEvmChainData(this, baseAccountId, isEdit, isTx, isRefresh)
                     }
                 }
             }
@@ -252,6 +259,7 @@ class ApplicationViewModel(
     }
 
     var fetchedResult = SingleLiveEvent<String>()
+    var fetchedStakeResult = SingleLiveEvent<String>()
 
     var fetchedTotalResult = SingleLiveEvent<String>()
 
@@ -285,80 +293,173 @@ class ApplicationViewModel(
         isRefresh: Boolean? = false
     ) = CoroutineScope(Dispatchers.IO).launch {
         chain.apply {
-            val channel = cosmosFetcher?.getChannel()
-            when (walletRepository.auth(channel, this)) {
-                is NetworkResult.Success -> {
-                    loadGrpcMoreData(channel, baseAccountId, this, isEdit, isTx, isRefresh)
-                }
-
-                is NetworkResult.Error -> {
-                    val loadSpendableBalanceDeferred =
-                        async { walletRepository.spendableBalance(channel, this@apply) }
-                    val loadBalanceDeferred =
-                        async { walletRepository.balance(channel, this@apply) }
-                    val loadRewardAddressDeferred =
-                        async { walletRepository.rewardAddress(channel, this@apply) }
-                    val loadFeeMarketDeferred =
-                        async { walletRepository.baseFee(channel, this@apply) }
-
-                    val spendableBalanceResult = loadSpendableBalanceDeferred.await()
-                    val balanceResult = loadBalanceDeferred.await()
-                    val rewardAddressResult = loadRewardAddressDeferred.await()
-                    val feeMarketResult = loadFeeMarketDeferred.await()
-
-                    if (spendableBalanceResult is NetworkResult.Success) {
-                        cosmosFetcher?.cosmosAvailable = spendableBalanceResult.data
+            try {
+                val channel = cosmosFetcher?.getChannel()
+                when (walletRepository.auth(channel, this)) {
+                    is NetworkResult.Success -> {
+                        loadGrpcMoreData(channel, baseAccountId, this, isEdit, isTx, isRefresh)
                     }
 
-                    if (balanceResult is NetworkResult.Success) {
-                        cosmosFetcher?.cosmosBalances = balanceResult.data
-                    }
+                    is NetworkResult.Error -> {
+                        val loadSpendableBalanceDeferred =
+                            async { walletRepository.spendableBalance(channel, this@apply) }
+                        val loadBalanceDeferred =
+                            async { walletRepository.balance(channel, this@apply) }
+                        val loadRewardAddressDeferred =
+                            async { walletRepository.rewardAddress(channel, this@apply) }
+                        val loadFeeMarketDeferred =
+                            async { walletRepository.baseFee(channel, this@apply) }
 
-                    if (rewardAddressResult is NetworkResult.Success) {
-                        cosmosFetcher?.rewardAddress = rewardAddressResult.data
-                    }
+                        val loadDelegationDeferred =
+                            async { walletRepository.delegation(channel, this@apply) }
+                        val loadUnBondingDeferred =
+                            async { walletRepository.unBonding(channel, this@apply) }
+                        val loadRewardDeferred =
+                            async { walletRepository.reward(channel, this@apply) }
+                        val loadBondedDeferred =
+                            async { walletRepository.bondedValidator(channel, this@apply) }
+                        val loadUnBondedDeferred =
+                            async { walletRepository.unBondedValidator(channel, this@apply) }
+                        val loadUnBondingValDeferred =
+                            async { walletRepository.unBondingValidator(channel, this@apply) }
 
-                    if (feeMarketResult is NetworkResult.Success) {
-                        cosmosFetcher?.cosmosBaseFees?.clear()
-                        feeMarketResult.data.forEach { baseFee ->
-                            if (BaseData.getAsset(
-                                    apiName, baseFee.denom
-                                ) != null
-                            ) {
-                                cosmosFetcher?.cosmosBaseFees?.add(baseFee)
+                        val spendableBalanceResult = loadSpendableBalanceDeferred.await()
+                        val balanceResult = loadBalanceDeferred.await()
+                        val rewardAddressResult = loadRewardAddressDeferred.await()
+                        val feeMarketResult = loadFeeMarketDeferred.await()
+
+                        val delegationResult = loadDelegationDeferred.await()
+                        val unBondingResult = loadUnBondingDeferred.await()
+                        val rewardResult = loadRewardDeferred.await()
+                        val bondedResult = loadBondedDeferred.await()
+                        val unBondedResult = loadUnBondedDeferred.await()
+                        val unBondingValResult = loadUnBondingValDeferred.await()
+
+                        if (spendableBalanceResult is NetworkResult.Success) {
+                            cosmosFetcher?.cosmosAvailable = spendableBalanceResult.data
+                        }
+
+                        if (balanceResult is NetworkResult.Success) {
+                            cosmosFetcher?.cosmosBalances = balanceResult.data
+                        }
+
+                        if (rewardAddressResult is NetworkResult.Success) {
+                            cosmosFetcher?.rewardAddress = rewardAddressResult.data
+                        }
+
+                        if (feeMarketResult is NetworkResult.Success) {
+                            cosmosFetcher?.cosmosBaseFees?.clear()
+                            feeMarketResult.data.forEach { baseFee ->
+                                if (BaseData.getAsset(
+                                        apiName, baseFee.denom
+                                    ) != null
+                                ) {
+                                    cosmosFetcher?.cosmosBaseFees?.add(baseFee)
+                                }
+                            }
+                            cosmosFetcher?.cosmosBaseFees?.sortWith { o1, o2 ->
+                                if (o1.denom == chain.getStakeAssetDenom() && o2.denom != chain.getStakeAssetDenom()) -1
+                                else 0
                             }
                         }
-                        cosmosFetcher?.cosmosBaseFees?.sortWith { o1, o2 ->
-                            if (o1.denom == chain.getStakeAssetDenom() && o2.denom != chain.getStakeAssetDenom()) -1
-                            else 0
+
+                        if (delegationResult is NetworkResult.Success && delegationResult.data is MutableList<*>) {
+                            cosmosFetcher?.cosmosDelegations?.clear()
+                            delegationResult.data.forEach { delegation ->
+                                if (delegation.balance.amount.toBigDecimal() > BigDecimal.ZERO) {
+                                    cosmosFetcher?.cosmosDelegations?.add(
+                                        delegation
+                                    )
+                                }
+                            }
                         }
-                    }
 
-                    delay(2000)
-                    fetchState = if (cosmosFetcher?.cosmosBalances == null) FetchState.FAIL
-                    else FetchState.SUCCESS
+                        if (unBondingResult is NetworkResult.Success && unBondingResult.data is MutableList<*>) {
+                            cosmosFetcher?.cosmosUnbondings = unBondingResult.data
+                        }
 
-                    if (fetchState == FetchState.SUCCESS) {
-                        val refAddress = RefAddress(
-                            baseAccountId,
-                            tag,
-                            address,
-                            evmAddress,
-                            "0",
-                            "0",
-                            "0",
-                            0
-                        )
-                        BaseData.updateRefAddressesMain(refAddress)
-                    }
-                    withContext(Dispatchers.Main) {
-                        if (isEdit == true) {
-                            editFetchedResult.value = tag
-                        } else {
-                            fetchedResult.value = tag
+                        if (rewardResult is NetworkResult.Success && rewardResult.data is MutableList<*>) {
+                            cosmosFetcher?.cosmosRewards = rewardResult.data
+                        }
+
+                        val tempValidators = mutableListOf<StakingProto.Validator>()
+                        if (bondedResult is NetworkResult.Success && bondedResult.data is MutableList<*>) {
+                            tempValidators.addAll(bondedResult.data as MutableList<StakingProto.Validator>)
+                        }
+                        if (unBondedResult is NetworkResult.Success && unBondedResult.data is MutableList<*>) {
+                            tempValidators.addAll(unBondedResult.data as MutableList<StakingProto.Validator>)
+                        }
+                        if (unBondingValResult is NetworkResult.Success && unBondingValResult.data is MutableList<*>) {
+                            tempValidators.addAll(unBondingValResult.data as MutableList<StakingProto.Validator>)
+                        }
+
+                        if (tempValidators.isNotEmpty()) {
+                            cosmosFetcher?.cosmosOriginValidators?.clear()
+                            cosmosFetcher?.cosmosOriginValidators?.addAll(tempValidators)
+
+                            val dataTempValidators = tempValidators.toMutableList()
+                            dataTempValidators.sortWith { o1, o2 ->
+                                when {
+                                    o1.description.moniker == "Cosmostation" -> -1
+                                    o2.description.moniker == "Cosmostation" -> 1
+                                    o1.jailed && !o2.jailed -> 1
+                                    !o1.jailed && o2.jailed -> -1
+                                    o1.tokens.toDouble() > o2.tokens.toDouble() -> -1
+                                    o1.tokens.toDouble() < o2.tokens.toDouble() -> 1
+                                    else -> 0
+                                }
+                            }
+                            cosmosFetcher?.cosmosValidators = dataTempValidators
+                        }
+
+                        fetchState = when {
+                            cosmosFetcher?.cosmosBalances == null -> FetchState.FAIL
+                            else -> FetchState.SUCCESS
+                        }
+
+                        if (fetchState == FetchState.SUCCESS) {
+                            val refAddress = RefAddress(
+                                baseAccountId,
+                                tag,
+                                address,
+                                evmAddress,
+                                "0",
+                                "0",
+                                "0",
+                                0
+                            )
+                            BaseData.updateRefAddressesMain(refAddress)
+                        }
+                        withContext(Dispatchers.Main) {
+                            fetchedStakeResult.value = tag
+                            if (isEdit == true) {
+                                editFetchedResult.value = tag
+                            } else if (isTx == true) {
+                                txFetchedResult.value = tag
+                            } else if (isRefresh == true) {
+                                refreshStakingInfoFetchedResult.value = tag
+                            } else {
+                                fetchedResult.value = tag
+                            }
                         }
                     }
                 }
+            } catch (e: Exception) {
+                fetchState = FetchState.FAIL
+                withContext(Dispatchers.Main) {
+                    fetchedStakeResult.value = tag
+                    if (isEdit == true) {
+                        editFetchedResult.value = tag
+                    } else if (isTx == true) {
+                        txFetchedResult.value = tag
+                    } else if (isRefresh == true) {
+                        refreshStakingInfoFetchedResult.value = tag
+                    } else {
+                        fetchedResult.value = tag
+                    }
+                }
+            } finally {
+                cosmosFetcher?.getChannel()?.shutdown()
             }
         }
     }
@@ -392,7 +493,6 @@ class ApplicationViewModel(
                 val loadSpendableBalanceDeferred =
                     async { walletRepository.spendableBalance(channel, chain) }
                 val loadBalanceDeferred = async { walletRepository.balance(channel, chain) }
-                val loadRewardDeferred = async { walletRepository.reward(channel, chain) }
                 val loadRewardAddressDeferred =
                     async { walletRepository.rewardAddress(channel, chain) }
                 val loadFeeMarketDeferred = async { walletRepository.baseFee(channel, chain) }
@@ -402,9 +502,18 @@ class ApplicationViewModel(
                         async { walletRepository.initiaDelegation(channel, chain) }
                     val loadUnBondingDeferred =
                         async { walletRepository.initiaUnBonding(channel, chain) }
+                    val loadBondedDeferred =
+                        async { walletRepository.initiaBondedValidator(channel, chain) }
+                    val loadUnBondedDeferred =
+                        async { walletRepository.initiaUnBondedValidator(channel, chain) }
+                    val loadUnBondingValDeferred =
+                        async { walletRepository.initiaUnBondingValidator(channel, chain) }
 
                     val delegationResult = loadDelegationDeferred.await()
                     val unBondingResult = loadUnBondingDeferred.await()
+                    val bondedResult = loadBondedDeferred.await()
+                    val unBondedResult = loadUnBondedDeferred.await()
+                    val unBondingValResult = loadUnBondingValDeferred.await()
 
                     if (delegationResult is NetworkResult.Success && delegationResult.data is MutableList<*>) {
                         chain.initiaFetcher()?.initiaDelegations?.clear()
@@ -422,19 +531,58 @@ class ApplicationViewModel(
                         chain.initiaFetcher()?.initiaUnbondings = unBondingResult.data
                     }
 
+                    val tempValidators = mutableListOf<InitiaStakingProto.Validator>()
+                    if (bondedResult is NetworkResult.Success && bondedResult.data is MutableList<*>) {
+                        tempValidators.addAll(bondedResult.data as MutableList<InitiaStakingProto.Validator>)
+                    }
+                    if (unBondedResult is NetworkResult.Success && unBondedResult.data is MutableList<*>) {
+                        tempValidators.addAll(unBondedResult.data as MutableList<InitiaStakingProto.Validator>)
+                    }
+                    if (unBondingValResult is NetworkResult.Success && unBondingValResult.data is MutableList<*>) {
+                        tempValidators.addAll(unBondingValResult.data as MutableList<InitiaStakingProto.Validator>)
+                    }
+
+                    if (tempValidators.isNotEmpty()) {
+                        chain.initiaFetcher()?.initiaOriginValidators?.clear()
+                        chain.initiaFetcher()?.initiaOriginValidators?.addAll(tempValidators)
+
+                        val dataTempValidators = tempValidators.toMutableList()
+                        dataTempValidators.sortWith { o1, o2 ->
+                            when {
+                                o1.description.moniker == "Cosmostation" -> -1
+                                o2.description.moniker == "Cosmostation" -> 1
+                                o1.jailed && !o2.jailed -> 1
+                                !o1.jailed && o2.jailed -> -1
+                                o1.tokensList.first { it.denom == chain.getStakeAssetDenom() }.amount.toDouble() > o2.tokensList.first { it.denom == chain.getStakeAssetDenom() }.amount.toDouble() -> -1
+                                o1.tokensList.first { it.denom == chain.getStakeAssetDenom() }.amount.toDouble() < o2.tokensList.first { it.denom == chain.getStakeAssetDenom() }.amount.toDouble() -> 1
+                                else -> 0
+                            }
+                        }
+                        chain.initiaFetcher()?.initiaValidators = dataTempValidators
+                    }
+
                 } else if (chain is ChainZenrock) {
                     val loadDelegationDeferred =
                         async { walletRepository.zenrockDelegation(channel, chain) }
                     val loadUnBondingDeferred =
                         async { walletRepository.zenrockUnBonding(channel, chain) }
+                    val loadBondedDeferred =
+                        async { walletRepository.zenrockBondedValidator(channel, chain) }
+                    val loadUnBondedDeferred =
+                        async { walletRepository.zenrockUnBondedValidator(channel, chain) }
+                    val loadUnBondingValDeferred =
+                        async { walletRepository.zenrockUnBondingValidator(channel, chain) }
 
                     val delegationResult = loadDelegationDeferred.await()
                     val unBondingResult = loadUnBondingDeferred.await()
+                    val bondedResult = loadBondedDeferred.await()
+                    val unBondedResult = loadUnBondedDeferred.await()
+                    val unBondingValResult = loadUnBondingValDeferred.await()
 
                     if (delegationResult is NetworkResult.Success && delegationResult.data is MutableList<*>) {
                         chain.zenrockFetcher()?.zenrockDelegations?.clear()
                         delegationResult.data.forEach { delegation ->
-                            if (delegation.balance.amount.toBigDecimal() > BigDecimal.ZERO) {
+                            if ((delegation as ZenrockStakingProto.DelegationResponse).balance.amount.toBigDecimal() > BigDecimal.ZERO) {
                                 chain.zenrockFetcher()?.zenrockDelegations?.add(
                                     delegation
                                 )
@@ -443,79 +591,71 @@ class ApplicationViewModel(
                     }
 
                     if (unBondingResult is NetworkResult.Success && unBondingResult.data is MutableList<*>) {
-                        chain.zenrockFetcher()?.zenrockUnbondings = unBondingResult.data
+                        chain.zenrockFetcher()?.zenrockUnbondings = unBondingResult.data as MutableList<ZenrockStakingProto.UnbondingDelegation>
+                    }
+
+                    val tempValidators = mutableListOf<HybridValidationProto.ValidatorHV>()
+                    if (bondedResult is NetworkResult.Success && bondedResult.data is MutableList<*>) {
+                        tempValidators.addAll(bondedResult.data as MutableList<HybridValidationProto.ValidatorHV>)
+                    }
+                    if (unBondedResult is NetworkResult.Success && unBondedResult.data is MutableList<*>) {
+                        tempValidators.addAll(unBondedResult.data as MutableList<HybridValidationProto.ValidatorHV>)
+                    }
+                    if (unBondingValResult is NetworkResult.Success && unBondingValResult.data is MutableList<*>) {
+                        tempValidators.addAll(unBondingValResult.data as MutableList<HybridValidationProto.ValidatorHV>)
+                    }
+
+                    if (tempValidators.isNotEmpty()) {
+                        chain.zenrockFetcher()?.zenrockOriginValidators?.clear()
+                        chain.zenrockFetcher()?.zenrockOriginValidators?.addAll(tempValidators)
+
+                        val dataTempValidators = tempValidators.toMutableList()
+                        dataTempValidators.sortWith { o1, o2 ->
+                            when {
+                                o1.description.moniker == "Cosmostation" -> -1
+                                o2.description.moniker == "Cosmostation" -> 1
+                                o1.jailed && !o2.jailed -> 1
+                                !o1.jailed && o2.jailed -> -1
+                               // o1.tokens.toDouble() > o2.tokens.toDouble() -> -1
+                               // o1.tokens.toDouble() < o2.tokens.toDouble() -> 1
+                                else -> 0
+                            }
+                        }
+                        chain.zenrockFetcher()?.zenrockValidators = dataTempValidators
+                    }
+
+                } else if (chain is ChainBabylon) {
+                    val loadRewardGaugeDeferred = async { walletRepository.btcReward(channel, chain) }
+                    val loadBtcStakedStatusDeferred = async { walletRepository.btcStakingStatus(chain) }
+
+                    val rewardGaugeResult = loadRewardGaugeDeferred.await()
+                    val btcStakedStatusResult = loadBtcStakedStatusDeferred.await()
+
+                    if (rewardGaugeResult is NetworkResult.Success) {
+                        chain.babylonFetcher()?.btcRewards = rewardGaugeResult.data
+                    } else if (rewardGaugeResult is NetworkResult.Error) {
+                        _chainDataErrorMessage.postValue("error type : ${rewardGaugeResult.errorType}  error message : ${rewardGaugeResult.errorMessage}")
+                    }
+
+                    if (btcStakedStatusResult is NetworkResult.Success) {
+                        chain.babylonFetcher()?.btcStakedStatus = btcStakedStatusResult.data
                     }
 
                 } else {
-                    if (chain is ChainNeutron) {
-                        val loadVaultDepositDeferred =
-                            async { walletRepository.vaultDeposit(channel, this@apply) }
-                        val loadVestingDeferred =
-                            async { walletRepository.vestingData(channel, this@apply) }
-                        val loadRewardsDeferred =
-                            async { walletRepository.stakingRewards(channel, this@apply) }
-
-                        val responses = awaitAll(
-                            loadVestingDeferred, loadVaultDepositDeferred, loadRewardsDeferred
-                        )
-
-                        responses.forEach { response ->
-                            when (response) {
-                                is NetworkResult.Success -> {
-                                    when (response.data) {
-                                        is com.cosmwasm.wasm.v1.QueryProto.QuerySmartContractStateResponse -> {
-                                            chain.neutronFetcher()?.neutronVesting =
-                                                Gson().fromJson(
-                                                    response.data.data.toStringUtf8(),
-                                                    VestingData::class.java
-                                                )
-                                        }
-
-                                        is String -> {
-                                            chain.neutronFetcher()?.neutronDeposited =
-                                                response.data.toString().toBigDecimal()
-                                        }
-
-                                        else -> {
-                                            chain.neutronFetcher()?.neutronRewards =
-                                                response.data.toString().toBigDecimal()
-                                        }
-                                    }
-                                }
-
-                                is NetworkResult.Error -> {
-                                    _chainDataErrorMessage.postValue("error type : ${response.errorType}  error message : ${response.errorMessage}")
-                                }
-                            }
-                        }
-                    }
-
-                    if (chain is ChainBabylon) {
-                        val loadRewardGaugeDeferred =
-                            async { walletRepository.btcReward(channel, chain) }
-                        val loadBtcStakedStatusDeferred =
-                            async { walletRepository.btcStakingStatus(chain) }
-
-                        val rewardGaugeResult = loadRewardGaugeDeferred.await()
-                        val btcStakedStatusResult = loadBtcStakedStatusDeferred.await()
-
-                        if (rewardGaugeResult is NetworkResult.Success) {
-                            chain.babylonFetcher()?.btcRewards = rewardGaugeResult.data
-                        } else if (rewardGaugeResult is NetworkResult.Error) {
-                            _chainDataErrorMessage.postValue("error type : ${rewardGaugeResult.errorType}  error message : ${rewardGaugeResult.errorMessage}")
-                        }
-
-                        if (btcStakedStatusResult is NetworkResult.Success) {
-                            chain.babylonFetcher()?.btcStakedStatus = btcStakedStatusResult.data
-                        }
-                    }
-
                     val loadDelegationDeferred =
                         async { walletRepository.delegation(channel, chain) }
                     val loadUnBondingDeferred = async { walletRepository.unBonding(channel, chain) }
+                    val loadRewardDeferred = async { walletRepository.reward(channel, chain) }
+                    val loadBondedDeferred = async { walletRepository.bondedValidator(channel, chain) }
+                    val loadUnBondedDeferred = async { walletRepository.unBondedValidator(channel, chain) }
+                    val loadUnBondingValDeferred = async { walletRepository.unBondingValidator(channel, chain) }
 
                     val delegationResult = loadDelegationDeferred.await()
                     val unBondingResult = loadUnBondingDeferred.await()
+                    val rewardResult = loadRewardDeferred.await()
+                    val bondedResult = loadBondedDeferred.await()
+                    val unBondedResult = loadUnBondedDeferred.await()
+                    val unBondingValResult = loadUnBondingValDeferred.await()
 
                     if (delegationResult is NetworkResult.Success && delegationResult.data is MutableList<*>) {
                         cosmosFetcher?.cosmosDelegations?.clear()
@@ -531,25 +671,53 @@ class ApplicationViewModel(
                     if (unBondingResult is NetworkResult.Success && unBondingResult.data is MutableList<*>) {
                         cosmosFetcher?.cosmosUnbondings = unBondingResult.data
                     }
+
+                    if (rewardResult is NetworkResult.Success && rewardResult.data is MutableList<*>) {
+                        cosmosFetcher?.cosmosRewards = rewardResult.data
+                    }
+
+                    val tempValidators = mutableListOf<StakingProto.Validator>()
+                    if (bondedResult is NetworkResult.Success && bondedResult.data is MutableList<*>) {
+                        tempValidators.addAll(bondedResult.data as MutableList<StakingProto.Validator>)
+                    }
+                    if (unBondedResult is NetworkResult.Success && unBondedResult.data is MutableList<*>) {
+                        tempValidators.addAll(unBondedResult.data as MutableList<StakingProto.Validator>)
+                    }
+                    if (unBondingValResult is NetworkResult.Success && unBondingValResult.data is MutableList<*>) {
+                        tempValidators.addAll(unBondingValResult.data as MutableList<StakingProto.Validator>)
+                    }
+
+                    if (tempValidators.isNotEmpty()) {
+                        cosmosFetcher?.cosmosOriginValidators?.clear()
+                        cosmosFetcher?.cosmosOriginValidators?.addAll(tempValidators)
+
+                        val dataTempValidators = tempValidators.toMutableList()
+                        dataTempValidators.sortWith { o1, o2 ->
+                            when {
+                                o1.description.moniker == "Cosmostation" -> -1
+                                o2.description.moniker == "Cosmostation" -> 1
+                                o1.jailed && !o2.jailed -> 1
+                                !o1.jailed && o2.jailed -> -1
+                                o1.tokens.toDouble() > o2.tokens.toDouble() -> -1
+                                o1.tokens.toDouble() < o2.tokens.toDouble() -> 1
+                                else -> 0
+                            }
+                        }
+                        cosmosFetcher?.cosmosValidators = dataTempValidators
+                    }
                 }
 
                 val spendableBalanceResult = loadSpendableBalanceDeferred.await()
                 val balanceResult = loadBalanceDeferred.await()
-                val rewardResult = loadRewardDeferred.await()
-                val rewardAddressResult = loadRewardAddressDeferred.await()
-                val feeMarketResult = loadFeeMarketDeferred.await()
-
                 if (spendableBalanceResult is NetworkResult.Success && spendableBalanceResult.data is MutableList<*>) {
                     cosmosFetcher?.cosmosAvailable = spendableBalanceResult.data
                 }
-
                 if (balanceResult is NetworkResult.Success && balanceResult.data is MutableList<*>) {
                     cosmosFetcher?.cosmosBalances = balanceResult.data
                 }
 
-                if (rewardResult is NetworkResult.Success && rewardResult.data is MutableList<*>) {
-                    cosmosFetcher?.cosmosRewards = rewardResult.data
-                }
+                val rewardAddressResult = loadRewardAddressDeferred.await()
+                val feeMarketResult = loadFeeMarketDeferred.await()
 
                 if (rewardAddressResult is NetworkResult.Success && rewardAddressResult.data is String) {
                     cosmosFetcher?.rewardAddress = rewardAddressResult.data
@@ -575,6 +743,22 @@ class ApplicationViewModel(
                     cosmosFetcher?.cosmosBalances == null -> FetchState.FAIL
                     supportEvm && web3j == null -> FetchState.FAIL
                     else -> FetchState.SUCCESS
+                }
+
+                if (fetchState == FetchState.FAIL) {
+                    withContext(Dispatchers.Main) {
+                        fetchedStakeResult.value = tag
+                        if (isEdit == true) {
+                            editFetchedResult.value = tag
+                        } else if (isTx == true) {
+                            txFetchedResult.value = tag
+                        } else if (isRefresh == true) {
+                            refreshStakingInfoFetchedResult.value = tag
+                        } else {
+                            fetchedResult.value = tag
+                        }
+                    }
+                    return@apply
                 }
 
                 val allAssetValue = if (chain is ChainBabylon) {
@@ -603,6 +787,10 @@ class ApplicationViewModel(
                     coinValue = allAssetValue
                     coinUsdValue = allAssetUsdValue
                     coinCnt = chain.cosmosFetcher()?.valueCoinCnt() ?: 0
+
+                    withContext(Dispatchers.Main) {
+                        fetchedStakeResult.value = tag
+                    }
 
                     var cw20TokenValue = BigDecimal.ZERO
                     var cw20TokenUsdValue = BigDecimal.ZERO
@@ -722,13 +910,20 @@ class ApplicationViewModel(
                     }
                     fetchedTotalResult.postValue(tag)
 
-                } else if (fetchState == FetchState.FAIL) {
-                    withContext(Dispatchers.Main) {
-                        if (isEdit == true) {
-                            editFetchedResult.value = tag
-                        } else {
-                            fetchedResult.value = tag
-                        }
+                }
+
+            } catch (e: Exception) {
+                fetchState = FetchState.FAIL
+                withContext(Dispatchers.Main) {
+                    fetchedStakeResult.value = tag
+                    if (isEdit == true) {
+                        editFetchedResult.value = tag
+                    } else if (isTx == true) {
+                        txFetchedResult.value = tag
+                    } else if (isRefresh == true) {
+                        refreshStakingInfoFetchedResult.value = tag
+                    } else {
+                        fetchedResult.value = tag
                     }
                 }
 
@@ -745,8 +940,13 @@ class ApplicationViewModel(
         }
     }
 
-    fun loadEvmChainData(chain: BaseChain, baseAccountId: Long, isEdit: Boolean? = false) =
-        CoroutineScope(Dispatchers.IO).launch {
+    fun loadEvmChainData(
+        chain: BaseChain,
+        baseAccountId: Long,
+        isEdit: Boolean? = false,
+        isTx: Boolean? = false,
+        isRefresh: Boolean? = false
+    ) = CoroutineScope(Dispatchers.IO).launch {
             chain.apply {
                 evmRpcFetcher()?.let { evmRpcFetcher ->
                     val userDisplayToken = Prefs.getDisplayErc20s(baseAccountId, tag)
@@ -835,6 +1035,10 @@ class ApplicationViewModel(
                                 withContext(Dispatchers.Main) {
                                     if (isEdit == true) {
                                         editFetchedResult.value = tag
+                                    } else if (isTx == true) {
+                                        txFetchedResult.value = tag
+                                    } else if (isRefresh == true) {
+                                        refreshStakingInfoFetchedResult.value = tag
                                     } else {
                                         fetchedResult.value = tag
                                     }
@@ -851,6 +1055,10 @@ class ApplicationViewModel(
                             withContext(Dispatchers.Main) {
                                 if (isEdit == true) {
                                     editFetchedResult.value = tag
+                                } else if (isTx == true) {
+                                    txFetchedResult.value = tag
+                                } else if (isRefresh == true) {
+                                    refreshStakingInfoFetchedResult.value = tag
                                 } else {
                                     fetchedResult.value = tag
                                 }
@@ -931,6 +1139,10 @@ class ApplicationViewModel(
                             withContext(Dispatchers.Main) {
                                 if (isEdit == true) {
                                     editFetchedResult.value = tag
+                                } else if (isTx == true) {
+                                    txFetchedResult.value = tag
+                                } else if (isRefresh == true) {
+                                    refreshStakingInfoFetchedResult.value = tag
                                 } else {
                                     fetchedResult.value = tag
                                 }
@@ -941,6 +1153,10 @@ class ApplicationViewModel(
                             withContext(Dispatchers.Main) {
                                 if (isEdit == true) {
                                     editFetchedResult.value = tag
+                                } else if (isTx == true) {
+                                    txFetchedResult.value = tag
+                                } else if (isRefresh == true) {
+                                    refreshStakingInfoFetchedResult.value = tag
                                 } else {
                                     fetchedResult.value = tag
                                 }
@@ -953,7 +1169,11 @@ class ApplicationViewModel(
         }
 
     private fun loadOktLcdData(
-        chain: ChainOkt996Keccak, baseAccountId: Long, isEdit: Boolean? = false
+        chain: ChainOkt996Keccak,
+        baseAccountId: Long,
+        isEdit: Boolean? = false,
+        isTx: Boolean? = false,
+        isRefresh: Boolean? = false
     ) = CoroutineScope(Dispatchers.IO).launch {
         chain.apply {
             val loadAccountInfoDeferred = async { walletRepository.oktAccountInfo(this@apply) }
@@ -1002,6 +1222,10 @@ class ApplicationViewModel(
                 withContext(Dispatchers.Main) {
                     if (isEdit == true) {
                         editFetchedResult.value = tag
+                    } else if (isTx == true) {
+                        txFetchedResult.value = tag
+                    } else if (isRefresh == true) {
+                        refreshStakingInfoFetchedResult.value = tag
                     } else {
                         fetchedResult.value = tag
                     }
@@ -1015,6 +1239,10 @@ class ApplicationViewModel(
                 withContext(Dispatchers.Main) {
                     if (isEdit == true) {
                         editFetchedResult.value = tag
+                    } else if (isTx == true) {
+                        txFetchedResult.value = tag
+                    } else if (isRefresh == true) {
+                        refreshStakingInfoFetchedResult.value = tag
                     } else {
                         fetchedResult.value = tag
                     }
@@ -1340,7 +1568,11 @@ class ApplicationViewModel(
     }
 
     fun loadBtcData(
-        id: Long, chain: ChainBitCoin86, isEdit: Boolean? = false, isRefresh: Boolean? = false
+        id: Long,
+        chain: ChainBitCoin86,
+        isEdit: Boolean? = false,
+        isTx: Boolean? = false,
+        isRefresh: Boolean? = false
     ) = CoroutineScope(Dispatchers.IO).launch {
         chain.btcFetcher()?.let { fetcher ->
             chain.apply {
@@ -1410,6 +1642,8 @@ class ApplicationViewModel(
                         withContext(Dispatchers.Main) {
                             if (isEdit == true) {
                                 editFetchedResult.value = tag
+                            } else if (isTx == true) {
+                                txFetchedResult.value = tag
                             } else if (isRefresh == true) {
                                 refreshStakingInfoFetchedResult.value = tag
                             } else {
@@ -1423,6 +1657,8 @@ class ApplicationViewModel(
                         withContext(Dispatchers.Main) {
                             if (isEdit == true) {
                                 editFetchedResult.value = tag
+                            } else if (isTx == true) {
+                                txFetchedResult.value = tag
                             } else if (isRefresh == true) {
                                 refreshStakingInfoFetchedResult.value = tag
                             } else {
@@ -1435,8 +1671,13 @@ class ApplicationViewModel(
         }
     }
 
-    private fun loadRpcData(chain: BaseChain, id: Long, isEdit: Boolean? = false) =
-        CoroutineScope(Dispatchers.IO).launch {
+    private fun loadRpcData(
+        chain: BaseChain,
+        id: Long,
+        isEdit: Boolean? = false,
+        isTx: Boolean? = false,
+        isRefresh: Boolean? = false
+    ) = CoroutineScope(Dispatchers.IO).launch {
             chain.apply {
                 when (val response = walletRepository.rpcAuth(chain)) {
                     is NetworkResult.Success -> {
@@ -1560,6 +1801,10 @@ class ApplicationViewModel(
                                     withContext(Dispatchers.Main) {
                                         if (isEdit == true) {
                                             editFetchedResult.value = tag
+                                        } else if (isTx == true) {
+                                            txFetchedResult.value = tag
+                                        } else if (isRefresh == true) {
+                                            refreshStakingInfoFetchedResult.value = tag
                                         } else {
                                             fetchedResult.value = tag
                                         }
@@ -1572,6 +1817,10 @@ class ApplicationViewModel(
                                 withContext(Dispatchers.Main) {
                                     if (isEdit == true) {
                                         editFetchedResult.value = tag
+                                    } else if (isTx == true) {
+                                        txFetchedResult.value = tag
+                                    } else if (isRefresh == true) {
+                                        refreshStakingInfoFetchedResult.value = tag
                                     } else {
                                         fetchedResult.value = tag
                                     }
@@ -1585,6 +1834,10 @@ class ApplicationViewModel(
                         withContext(Dispatchers.Main) {
                             if (isEdit == true) {
                                 editFetchedResult.value = tag
+                            } else if (isTx == true) {
+                                txFetchedResult.value = tag
+                            } else if (isRefresh == true) {
+                                refreshStakingInfoFetchedResult.value = tag
                             } else {
                                 fetchedResult.value = tag
                             }
@@ -1594,8 +1847,13 @@ class ApplicationViewModel(
             }
         }
 
-    fun loadSolData(id: Long, chain: ChainSolana, isEdit: Boolean? = false) =
-        CoroutineScope(Dispatchers.IO).launch {
+    fun loadSolData(
+        id: Long,
+        chain: ChainSolana,
+        isEdit: Boolean? = false,
+        isTx: Boolean? = false,
+        isRefresh: Boolean? = false
+    ) = CoroutineScope(Dispatchers.IO).launch {
             chain.apply {
                 solanaFetcher()?.let { fetcher ->
                     fetcher.solanaAccountInfo = JsonObject()
@@ -1668,6 +1926,10 @@ class ApplicationViewModel(
                                             withContext(Dispatchers.Main) {
                                                 if (isEdit == true) {
                                                     editFetchedResult.value = tag
+                                                } else if (isTx == true) {
+                                                    txFetchedResult.value = tag
+                                                } else if (isRefresh == true) {
+                                                    refreshStakingInfoFetchedResult.value = tag
                                                 } else {
                                                     fetchedResult.value = tag
                                                 }
@@ -1679,6 +1941,10 @@ class ApplicationViewModel(
                                             withContext(Dispatchers.Main) {
                                                 if (isEdit == true) {
                                                     editFetchedResult.value = tag
+                                                } else if (isTx == true) {
+                                                    txFetchedResult.value = tag
+                                                } else if (isRefresh == true) {
+                                                    refreshStakingInfoFetchedResult.value = tag
                                                 } else {
                                                     fetchedResult.value = tag
                                                 }
@@ -1691,6 +1957,10 @@ class ApplicationViewModel(
                                     withContext(Dispatchers.Main) {
                                         if (isEdit == true) {
                                             editFetchedResult.value = tag
+                                        } else if (isTx == true) {
+                                            txFetchedResult.value = tag
+                                        } else if (isRefresh == true) {
+                                            refreshStakingInfoFetchedResult.value = tag
                                         } else {
                                             fetchedResult.value = tag
                                         }
@@ -1703,6 +1973,10 @@ class ApplicationViewModel(
                                 withContext(Dispatchers.Main) {
                                     if (isEdit == true) {
                                         editFetchedResult.value = tag
+                                    } else if (isTx == true) {
+                                        txFetchedResult.value = tag
+                                    } else if (isRefresh == true) {
+                                        refreshStakingInfoFetchedResult.value = tag
                                     } else {
                                         fetchedResult.value = tag
                                     }
@@ -1715,6 +1989,10 @@ class ApplicationViewModel(
                         withContext(Dispatchers.Main) {
                             if (isEdit == true) {
                                 editFetchedResult.value = tag
+                            } else if (isTx == true) {
+                                txFetchedResult.value = tag
+                            } else if (isRefresh == true) {
+                                refreshStakingInfoFetchedResult.value = tag
                             } else {
                                 fetchedResult.value = tag
                             }

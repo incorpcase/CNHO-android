@@ -133,6 +133,7 @@ class BabylonStakingFragment(
     private fun observeViewModels() {
         ApplicationViewModel.shared.refreshStakingInfoFetchedResult.observe(viewLifecycleOwner) { tag ->
             if (selectedChain.tag == tag) {
+                binding.refresher.isRefreshing = false
                 ApplicationViewModel.shared.notifyRefreshEvent()
                 initData()
             }

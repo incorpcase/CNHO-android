@@ -153,7 +153,7 @@ class LegacyTransferFragment : BaseTxFragment() {
             val value = price.multiply(amount).setScale(6, RoundingMode.DOWN)
 
             feeAmount.text = formatAmount(amount.toPlainString(), 18)
-            feeValue.text = formatAssetValue(value)
+            feeValue.text = formatAssetValue(value, coinGeckoId = coinGeckoId)
         }
     }
 
@@ -173,7 +173,7 @@ class LegacyTransferFragment : BaseTxFragment() {
                     BaseData.getAsset(fromChain.apiName, fromChain.getStakeAssetDenom())?.coinGeckoId
                 val price = BaseData.getPrice(coinGeckoId)
                 val toSendValue = price.multiply(dpAmount).setScale(6, RoundingMode.DOWN)
-                sendValue.text = formatAssetValue(toSendValue)
+                sendValue.text = formatAssetValue(toSendValue, coinGeckoId = coinGeckoId)
 
             } else {
                 sendValue.visibility = View.GONE

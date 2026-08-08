@@ -18,9 +18,11 @@ class CurrencyViewHolder(
         binding.apply {
             currencyName.text = currency
 
-            val country =
-                context.resources.getStringArray(R.array.currency_country_array)[adapterPosition]
-            currencyCountry.text = country
+            val allCurrencyList = context.resources.getStringArray(R.array.currency_unit_array).toList()
+            val allCountryList = context.resources.getStringArray(R.array.currency_country_array).toList()
+            val currencyIndex = allCurrencyList.indexOf(currency)
+
+            currencyCountry.text = allCountryList[currencyIndex]
 
             val imageResources = listOf(
                 R.drawable.icon_usd,
@@ -42,9 +44,9 @@ class CurrencyViewHolder(
                 R.drawable.icon_cad,
                 R.drawable.icon_myr
             )
-            currencyImg.setImg(imageResources[adapterPosition])
+            currencyImg.setImg(imageResources[currencyIndex])
 
-            if (Prefs.currency == adapterPosition) {
+            if (Prefs.currency == currencyIndex) {
                 currencyView.visibility = View.VISIBLE
                 currencyViewLayout.setBackgroundColor(
                     ContextCompat.getColor(
