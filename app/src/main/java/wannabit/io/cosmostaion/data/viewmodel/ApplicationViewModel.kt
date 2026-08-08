@@ -259,7 +259,9 @@ class ApplicationViewModel(
     }
 
     var fetchedResult = SingleLiveEvent<String>()
-    var fetchedStakeResult = SingleLiveEvent<String>()
+    //var fetchedStakeResult = SingleLiveEvent<String>()
+    private val _fetchedStakeResult = MutableLiveData<String>()
+    val fetchedStakeResult: LiveData<String> get() = _fetchedStakeResult
 
     var fetchedTotalResult = SingleLiveEvent<String>()
 
@@ -431,7 +433,8 @@ class ApplicationViewModel(
                             BaseData.updateRefAddressesMain(refAddress)
                         }
                         withContext(Dispatchers.Main) {
-                            fetchedStakeResult.value = tag
+                            //fetchedStakeResult.value = tag
+                            _fetchedStakeResult.postValue(tag)
                             if (isEdit == true) {
                                 editFetchedResult.value = tag
                             } else if (isTx == true) {
@@ -447,7 +450,8 @@ class ApplicationViewModel(
             } catch (e: Exception) {
                 fetchState = FetchState.FAIL
                 withContext(Dispatchers.Main) {
-                    fetchedStakeResult.value = tag
+                    //fetchedStakeResult.value = tag
+                    _fetchedStakeResult.postValue(tag)
                     if (isEdit == true) {
                         editFetchedResult.value = tag
                     } else if (isTx == true) {
@@ -747,7 +751,8 @@ class ApplicationViewModel(
 
                 if (fetchState == FetchState.FAIL) {
                     withContext(Dispatchers.Main) {
-                        fetchedStakeResult.value = tag
+                        //fetchedStakeResult.value = tag
+                        _fetchedStakeResult.postValue(tag)
                         if (isEdit == true) {
                             editFetchedResult.value = tag
                         } else if (isTx == true) {
@@ -789,7 +794,8 @@ class ApplicationViewModel(
                     coinCnt = chain.cosmosFetcher()?.valueCoinCnt() ?: 0
 
                     withContext(Dispatchers.Main) {
-                        fetchedStakeResult.value = tag
+                        //fetchedStakeResult.value = tag
+                        _fetchedStakeResult.postValue(tag)
                     }
 
                     var cw20TokenValue = BigDecimal.ZERO
@@ -915,7 +921,8 @@ class ApplicationViewModel(
             } catch (e: Exception) {
                 fetchState = FetchState.FAIL
                 withContext(Dispatchers.Main) {
-                    fetchedStakeResult.value = tag
+                    //fetchedStakeResult.value = tag
+                    _fetchedStakeResult.postValue(tag)
                     if (isEdit == true) {
                         editFetchedResult.value = tag
                     } else if (isTx == true) {

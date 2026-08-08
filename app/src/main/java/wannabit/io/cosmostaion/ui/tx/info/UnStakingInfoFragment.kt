@@ -277,6 +277,10 @@ class UnStakingInfoFragment : Fragment() {
     }
 
     private fun setUpStakeInfo() {
+        ApplicationViewModel.shared.currentAccountResult.observe(viewLifecycleOwner) {
+            initData()
+        }
+
         ApplicationViewModel.shared.fetchedStakeResult.observe(viewLifecycleOwner) { tag ->
             if (selectedChain.tag == tag) {
                 initData()

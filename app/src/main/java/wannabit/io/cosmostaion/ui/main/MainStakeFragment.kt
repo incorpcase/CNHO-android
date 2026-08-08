@@ -111,6 +111,10 @@ class MainStakeFragment : Fragment() {
     }
 
     private fun setUpObservers() {
+        ApplicationViewModel.shared.currentAccountResult.observe(viewLifecycleOwner) {
+            updateStakeValue()
+        }
+
         ApplicationViewModel.shared.fetchedStakeResult.observe(viewLifecycleOwner) { tag ->
             if (cnhoChain.tag == tag) {
                 updateStakeValue()

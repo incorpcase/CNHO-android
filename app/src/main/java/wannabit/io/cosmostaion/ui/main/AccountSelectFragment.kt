@@ -59,6 +59,7 @@ class AccountSelectFragment : BottomSheetDialogFragment() {
                                     toAccount?.let { account ->
                                         Prefs.lastAccountId = account.id
                                         BaseData.baseAccount = account
+                                        BaseData.baseAccount?.initAccount()
                                     }
                                 }
                                 ApplicationViewModel.shared.currentAccount(BaseData.baseAccount, false)
