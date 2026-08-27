@@ -98,6 +98,16 @@ import wannabit.io.cosmostaion.data.model.req.MoonPayReq
 import wannabit.io.cosmostaion.data.model.req.NftInfo
 import wannabit.io.cosmostaion.data.model.req.Result
 import wannabit.io.cosmostaion.data.model.req.Rewards
+import wannabit.io.cosmostaion.data.model.req.SimulateSwapOperations
+import wannabit.io.cosmostaion.data.model.req.SimulateSwapOperationsReq
+import wannabit.io.cosmostaion.data.model.req.SwapOperation
+import wannabit.io.cosmostaion.data.model.req.AstroportOperation
+import wannabit.io.cosmostaion.data.model.req.NativeSwap
+import wannabit.io.cosmostaion.data.model.req.AssetInfo
+import wannabit.io.cosmostaion.data.model.req.NativeToken
+import wannabit.io.cosmostaion.data.model.req.OfferAsset
+import wannabit.io.cosmostaion.data.model.req.Simulation
+import wannabit.io.cosmostaion.data.model.req.SimulationReq
 import wannabit.io.cosmostaion.data.model.req.RewardsReq
 import wannabit.io.cosmostaion.data.model.req.StarCw721TokenIdReq
 import wannabit.io.cosmostaion.data.model.req.StarCw721TokenInfoReq
@@ -1829,6 +1839,76 @@ class WalletRepositoryImpl : WalletRepository {
         } catch (e: Exception) {
             safeApiCall(Dispatchers.IO) {
                 JsonObject()
+            }
+        }
+    }
+
+    override suspend fun simulateSwap(
+        channel: ManagedChannel?,
+        chain: BaseChain,
+        contractAddress: String,
+        offerAmount: String,
+        offerDenom: String,
+        askDenom: String
+    ): NetworkResult<String?> = safeApiCall(Dispatchers.IO) {
+        val swapOperation = SwapOperation(astroport = AstroportOperation(NativeSwap(offerDenom, askDenom)))
+        val req = SimulateSwapOperationsReq(SimulateSwapOperations(offerAmount, listOf(swapOperation)))
+        val jsonData = Gson().toJson(req)
+        val queryData = ByteString.copyFromUtf8(jsonData)
+
+        if (chain.cosmosFetcher?.endPointType(chain) == CosmosEndPointType.USE_GRPC) {
+            val stub = com.cosmwasm.wasm.v1.QueryGrpc.newBlockingStub(channel)
+                .withDeadlineAfter(duration, TimeUnit.SECONDS)
+            val request = QuerySmartContractStateRequest.newBuilder().setAddress(contractAddress)
+                .setQueryData(queryData).build()
+            try {
+                val response = stub.smartContractState(request)
+                val json = JSONObject(response.data.toStringUtf8())
+                json.optString("amount")
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            val queryDataBase64 = Base64.toBase64String(queryData.toByteArray())
+            try {
+                val response = lcdApi(chain).lcdContractInfo(contractAddress, queryDataBase64)
+                response["data"].asJsonObject["amount"].asString
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
+    override suspend fun simulateVndoPrice(
+        channel: ManagedChannel?,
+        chain: BaseChain,
+        contractAddress: String,
+        offerAmount: String,
+        offerDenom: String
+    ): NetworkResult<String?> = safeApiCall(Dispatchers.IO) {
+        val req = SimulationReq(Simulation(OfferAsset(AssetInfo(NativeToken(offerDenom)), offerAmount)))
+        val jsonData = Gson().toJson(req)
+        val queryData = ByteString.copyFromUtf8(jsonData)
+
+        if (chain.cosmosFetcher?.endPointType(chain) == CosmosEndPointType.USE_GRPC) {
+            val stub = com.cosmwasm.wasm.v1.QueryGrpc.newBlockingStub(channel)
+                .withDeadlineAfter(duration, TimeUnit.SECONDS)
+            val request = QuerySmartContractStateRequest.newBuilder().setAddress(contractAddress)
+                .setQueryData(queryData).build()
+            try {
+                val response = stub.smartContractState(request)
+                val json = JSONObject(response.data.toStringUtf8())
+                json.optString("return_amount")
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            val queryDataBase64 = Base64.toBase64String(queryData.toByteArray())
+            try {
+                val response = lcdApi(chain).lcdContractInfo(contractAddress, queryDataBase64)
+                response["data"].asJsonObject["return_amount"].asString
+            } catch (e: Exception) {
+                null
             }
         }
     }

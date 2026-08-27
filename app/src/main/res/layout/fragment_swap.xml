@@ -71,7 +71,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/space_12"
-                    android:layout_marginTop="@dimen/space_16">
+                    android:layout_marginTop="@dimen/space_16"
+                    app:cardBackgroundColor="@color/color_base08"
+                    app:cardElevation="0dp"
+                    app:cardCornerRadius="@dimen/space_8">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
@@ -359,7 +362,10 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/input_view"
                     android:layout_marginHorizontal="@dimen/space_12"
-                    android:layout_marginTop="@dimen/space_8">
+                    android:layout_marginTop="@dimen/space_8"
+                    app:cardBackgroundColor="@color/color_base08"
+                    app:cardElevation="0dp"
+                    app:cardCornerRadius="@dimen/space_8">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
@@ -584,7 +590,10 @@
                     android:layout_marginTop="@dimen/space_80"
                     android:layout_below="@+id/output_view"
                     android:layout_marginHorizontal="@dimen/space_16"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/color_base08"
+                    app:cardElevation="0dp"
+                    app:cardCornerRadius="@dimen/space_8">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
@@ -645,7 +654,10 @@
                     android:layout_marginTop="@dimen/space_80"
                     android:layout_below="@+id/output_view"
                     android:layout_marginHorizontal="@dimen/space_16"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/color_base08"
+                    app:cardElevation="0dp"
+                    app:cardCornerRadius="@dimen/space_8">
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"

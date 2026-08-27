@@ -52,6 +52,9 @@ import wannabit.io.cosmostaion.common.regexWithNumberAndChar
 import wannabit.io.cosmostaion.common.toHex
 import wannabit.io.cosmostaion.data.model.res.NetworkResult
 import wannabit.io.cosmostaion.data.model.res.VestingData
+import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
+import java.math.BigDecimal
+import java.math.RoundingMode
 import wannabit.io.cosmostaion.data.repository.wallet.WalletRepository
 import wannabit.io.cosmostaion.data.viewmodel.event.SingleLiveEvent
 import wannabit.io.cosmostaion.database.Prefs
@@ -59,12 +62,12 @@ import wannabit.io.cosmostaion.database.model.BaseAccount
 import wannabit.io.cosmostaion.database.model.RefAddress
 import wannabit.io.cosmostaion.ui.main.CosmostationApp
 import xyz.mcxross.kaptos.model.Option
-import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
 class ApplicationViewModel(
-    application: Application, private val walletRepository: WalletRepository
+    application: Application, val walletRepository: WalletRepository
 ) : AndroidViewModel(application) {
+
     companion object {
         val shared
             get() = CosmostationApp.instance.applicationViewModel
@@ -83,7 +86,29 @@ class ApplicationViewModel(
             is NetworkResult.Success -> {
                 response.data.let { data ->
                     BaseData.prices = data
-                    BaseData.cnhoPrice = (9998..10010).random() / 10000.0
+                    BaseData.cnhoPrice = 1.0 // Fixed 1:1 with CNY for discovery baseline
+                    
+                    BaseData.assets?.filter { it.chain == "cnho" && it.denom != "ucnho" }?.forEach { asset ->
+                        asset.denom?.let { denom ->
+                            val offerAmount = Math.pow(10.0, (asset.decimals ?: 6).toDouble()).toLong().toString()
+                            val result = if (denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {
+                                walletRepository.simulateVndoPrice(
+                                    null, ChainCnho(), ChainCnho.DEX_PAIR, offerAmount, denom
+                                )
+                            } else {
+                                walletRepository.simulateSwap(
+                                    null, ChainCnho(), ChainCnho.DEX_ROUTER, offerAmount, denom, "ucnho"
+                                )
+                            }
+                            if (result is NetworkResult.Success) {
+                                result.data?.let { amount ->
+                                    val price = amount.toBigDecimal().divide(BigDecimal.valueOf(Math.pow(10.0, ChainCnho.DISPLAY_DECIMALS.toDouble())), 12, RoundingMode.HALF_DOWN)
+                                    BaseData.cnhoPoolPrices[denom] = price
+                                }
+                            }
+                        }
+                    }
+
                     BaseData.setLastPriceTime()
                     BaseData.baseAccount?.updateAllValue()
                     updatePriceResult.postValue(currency)

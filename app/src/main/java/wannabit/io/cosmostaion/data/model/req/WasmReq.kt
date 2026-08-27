@@ -28,3 +28,47 @@ data class Token(val owner: String?, val limit: Int = 50, val start_after: Strin
 
 data class StarCw721TokenInfoReq(val nft_info: NftInfo)
 data class NftInfo(val token_id: String)
+
+data class SimulateSwapOperationsReq(val simulate_swap_operations: SimulateSwapOperations)
+data class SimulateSwapOperations(
+    val offer_amount: String,
+    val operations: List<SwapOperation>
+)
+
+data class SwapOperation(
+    val astroport: AstroportOperation? = null,
+    val pool: PoolOperation? = null
+)
+
+data class PoolOperation(
+    val pool: Pool
+)
+
+data class Pool(
+    val offer_asset: OfferAsset
+)
+
+data class OfferAsset(
+    val info: AssetInfo,
+    val amount: String
+)
+
+data class AssetInfo(
+    val native_token: NativeToken
+)
+
+data class NativeToken(
+    val denom: String
+)
+
+data class SimulationReq(val simulation: Simulation)
+data class Simulation(val offer_asset: OfferAsset)
+
+data class AstroportOperation(
+    val native_swap: NativeSwap
+)
+
+data class NativeSwap(
+    val offer_denom: String,
+    val ask_denom: String
+)

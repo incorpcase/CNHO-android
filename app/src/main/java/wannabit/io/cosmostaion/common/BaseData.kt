@@ -40,10 +40,16 @@ object BaseData {
     var appSchemeUrl = ""
 
     var cnhoPrice: Double = 1.0
+    var cnhoPoolPrices: MutableMap<String, BigDecimal> = mutableMapOf()
 
     fun getPrice(coinGeckoId: String?, isUsd: Boolean? = false): BigDecimal {
         if (coinGeckoId == "cnho") {
             return cnhoPrice.toBigDecimal().setScale(12, RoundingMode.HALF_DOWN)
+        }
+        if (coinGeckoId?.startsWith("cnho:") == true) {
+            val denom = coinGeckoId.substringAfter("cnho:")
+            val poolPrice = cnhoPoolPrices[denom] ?: BigDecimal.ZERO
+            return (poolPrice * cnhoPrice.toBigDecimal()).setScale(12, RoundingMode.HALF_DOWN)
         }
         val price = if (isUsd == true) {
             usdPrices?.firstOrNull { it.coinGeckoId == coinGeckoId }
@@ -85,19 +91,36 @@ object BaseData {
             assets?.firstOrNull {
                 it.chain == chainName &&
                         it.denom.equals(denom, true)
-            } ?: Asset(
-                chain = "cnho",
-                type = "staking",
-                denom = "ucnho",
-                name = "CNHO",
-                symbol = "CNHO",
-                description = "CNHO Native Token",
-                decimals = 6,
-                image = null,
-                coinGeckoId = "cnho",
-                color = "#FFFFFF",
-                ibc_info = null
-            )
+            } ?: if (denom.startsWith("factory/")) {
+                val symbol = denom.split("/").last().uppercase()
+                Asset(
+                    chain = "cnho",
+                    type = "staking",
+                    denom = denom,
+                    name = symbol,
+                    symbol = symbol,
+                    description = "$symbol Token",
+                    decimals = 6,
+                    image = null,
+                    coinGeckoId = "cnho:$denom",
+                    color = "#FFFFFF",
+                    ibc_info = null
+                )
+            } else {
+                Asset(
+                    chain = "cnho",
+                    type = "staking",
+                    denom = "ucnho",
+                    name = "CNHO",
+                    symbol = "CNHO",
+                    description = "CNHO Native Token",
+                    decimals = 6,
+                    image = null,
+                    coinGeckoId = "cnho",
+                    color = "#FFFFFF",
+                    ibc_info = null
+                )
+            }
         } else {
             assets?.firstOrNull {
                 it.chain == chainName &&

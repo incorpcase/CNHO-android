@@ -1,3 +1,9 @@
 package wannabit.io.cosmostaion.ui.tx.genTx
 
-annotation class TargetAssetType
+enum class TargetAssetType {
+    NATIVE,
+    IBC,
+    CW20,
+    ERC20,
+    GNO
+}

@@ -203,6 +203,14 @@ interface WalletRepository {
         chain: BaseChain, contractAddress: String, tokenId: String
     ): NetworkResult<JsonObject>
 
+    suspend fun simulateSwap(
+        channel: ManagedChannel?, chain: BaseChain, contractAddress: String, offerAmount: String, offerDenom: String, askDenom: String
+    ): NetworkResult<String?>
+
+    suspend fun simulateVndoPrice(
+        channel: ManagedChannel?, chain: BaseChain, contractAddress: String, offerAmount: String, offerDenom: String
+    ): NetworkResult<String?>
+
     suspend fun ecoSystemInfo(): NetworkResult<MutableList<JsonObject>>
 
     suspend fun adsInfo(): NetworkResult<AdsResponse>

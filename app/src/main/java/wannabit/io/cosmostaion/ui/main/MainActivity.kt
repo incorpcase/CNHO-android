@@ -167,6 +167,11 @@ class MainActivity : BaseActivity() {
                     }
 
                     2 -> {
+                        tabBinding.tabIcon.setImageResource(R.drawable.icon_swap)
+                        tabBinding.tabText.text = getString(R.string.title_swap)
+                    }
+
+                    3 -> {
                         tabBinding.tabIcon.setImageResource(R.drawable.icon_setting)
                         tabBinding.tabText.text = getString(R.string.str_setting)
                     }
@@ -190,8 +195,8 @@ class MainActivity : BaseActivity() {
                     mainViewPager.setCurrentItem(position, false)
                     tabIconSetColor(tab, true)
 
-                    btnEdit.goneOrVisible(position == 1 || position == 2)
-                    btnSort.goneOrVisible(position == 1 || position == 2)
+                    btnEdit.goneOrVisible(position == 1 || position == 3)
+                    btnSort.goneOrVisible(position == 1 || position == 3)
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab?) {
@@ -343,6 +348,7 @@ class MainActivity : BaseActivity() {
         private val mainFragments = mutableListOf(
             DashboardFragment.newInstance(BaseData.baseAccount),
             MainStakeFragment(),
+            SwapFragment(),
             SettingFragment()
         )
 
