@@ -150,7 +150,7 @@ class OktWithdrawFragment : BaseTxFragment() {
             val value = price.multiply(gasFee).setScale(6, RoundingMode.DOWN)
             feeAmount.text = formatAmount(gasFee.toPlainString(), 18)
             feeDenom.text = chain.getGasAssetDenom().uppercase()
-            feeValue.text = formatAssetValue(value)
+            feeValue.text = formatAssetValue(value, coinGeckoId = coinGeckoId)
         }
     }
 
@@ -167,7 +167,7 @@ class OktWithdrawFragment : BaseTxFragment() {
                 BaseData.getAsset(selectedChain.apiName, selectedChain.getStakeAssetDenom())?.coinGeckoId
             val price = BaseData.getPrice(coinGeckoId)
             val toSendValue = price.multiply(dpAmount).setScale(6, RoundingMode.DOWN)
-            withdrawValue.text = formatAssetValue(toSendValue)
+            withdrawValue.text = formatAssetValue(toSendValue, coinGeckoId = coinGeckoId)
         }
         txValidate()
     }

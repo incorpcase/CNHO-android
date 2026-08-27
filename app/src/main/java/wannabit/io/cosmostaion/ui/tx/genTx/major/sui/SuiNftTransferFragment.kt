@@ -271,7 +271,7 @@ class SuiNftTransferFragment(
 
     private fun setUpSimulate() {
         txViewModel.simulate.observe(viewLifecycleOwner) { gasUsed ->
-            suiFeeBudget = gasUsed?.toBigDecimal()
+            suiFeeBudget = gasUsed?.toBigDecimalOrNull() ?: BigDecimal.ZERO
             updateFeeView()
             isBroadCastTx(true)
         }

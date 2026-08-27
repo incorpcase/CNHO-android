@@ -109,7 +109,7 @@ fun formatAmount(input: String, decimal: Int): SpannableString {
 }
 
 fun assetValue(value: BigDecimal, isUsd: Boolean? = false, coinGeckoId: String? = ""): SpannableString {
-    val decimal = if (coinGeckoId == "cnho") 4 else 3
+    val decimal = if (coinGeckoId?.contains("vndo") == true) 7 else if (coinGeckoId == "cnho") 4 else 3
     val formatted = if (isUsd == true) {
         "$" + " " + getDecimalFormat(decimal).format(value)
     } else {

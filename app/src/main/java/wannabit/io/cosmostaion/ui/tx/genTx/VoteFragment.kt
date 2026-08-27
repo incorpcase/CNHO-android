@@ -45,6 +45,7 @@ import wannabit.io.cosmostaion.ui.tx.option.general.BaseFeeAssetFragment
 import wannabit.io.cosmostaion.ui.tx.option.general.BaseFeeAssetSelectListener
 import wannabit.io.cosmostaion.ui.tx.option.general.MemoFragment
 import wannabit.io.cosmostaion.ui.tx.option.general.MemoListener
+import java.math.BigDecimal
 import java.math.RoundingMode
 
 class VoteFragment : BaseTxFragment() {
@@ -239,12 +240,12 @@ class VoteFragment : BaseTxFragment() {
                     feeTokenImg.setTokenImg(asset)
                     feeToken.text = asset.symbol
 
-                    val amount = fee.amount.toBigDecimal().amountHandlerLeft(asset.decimals ?: 6)
+                    val amount = fee.amount.toBigDecimalOrNull()?.amountHandlerLeft(asset.decimals ?: 6) ?: BigDecimal.ZERO
                     val price = BaseData.getPrice(asset.coinGeckoId)
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
             }
         }

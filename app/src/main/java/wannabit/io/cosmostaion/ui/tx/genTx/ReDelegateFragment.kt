@@ -294,7 +294,7 @@ class ReDelegateFragment : BaseTxFragment() {
 
                     val staked =
                         selectedChain.cosmosFetcher?.cosmosDelegations?.firstOrNull { it.delegation.validatorAddress == fromValidator.operatorAddress }?.balance?.amount
-                    staked?.toBigDecimal()?.movePointLeft(asset.decimals ?: 6)?.let {
+                    staked?.toBigDecimalOrNull()?.movePointLeft(asset.decimals ?: 6)?.let {
                         stakedAmount.text = formatAmount(it.toPlainString(), asset.decimals ?: 6)
                     }
                 }
@@ -312,7 +312,7 @@ class ReDelegateFragment : BaseTxFragment() {
 
                     val staked =
                         (selectedChain as ChainInitia?)?.initiaFetcher()?.initiaDelegations?.firstOrNull { it.delegation.validatorAddress == initiaFromValidator.operatorAddress }?.balanceList?.firstOrNull { it.denom == selectedChain.getStakeAssetDenom() }?.amount
-                    staked?.toBigDecimal()?.movePointLeft(asset.decimals ?: 6)?.let {
+                    staked?.toBigDecimalOrNull()?.movePointLeft(asset.decimals ?: 6)?.let {
                         stakedAmount.text = formatAmount(it.toPlainString(), asset.decimals ?: 6)
                     }
                 }
@@ -330,7 +330,7 @@ class ReDelegateFragment : BaseTxFragment() {
 
                     val staked =
                         (selectedChain as ChainZenrock).zenrockFetcher()?.zenrockDelegations?.firstOrNull { it.delegation.validatorAddress == fromValidator.operatorAddress }?.balance?.amount
-                    staked?.toBigDecimal()?.movePointLeft(asset.decimals ?: 6)?.let {
+                    staked?.toBigDecimalOrNull()?.movePointLeft(asset.decimals ?: 6)?.let {
                         stakedAmount.text = formatAmount(it.toPlainString(), asset.decimals ?: 6)
                     }
                 }
@@ -352,8 +352,8 @@ class ReDelegateFragment : BaseTxFragment() {
                 toJailedImg.visibility = if (statusImage != 0) View.VISIBLE else View.GONE
                 toJailedImg.setImageResource(statusImage)
 
-                toValidator.commission.commissionRates.rate.toBigDecimal().movePointLeft(16)
-                    .setScale(2, RoundingMode.DOWN).let {
+                toValidator.commission.commissionRates.rate.toBigDecimalOrNull()?.movePointLeft(16)
+                    ?.setScale(2, RoundingMode.DOWN)?.let {
                         commission.text = formatString("$it%", 3)
 
                         txSimulate()
@@ -371,8 +371,8 @@ class ReDelegateFragment : BaseTxFragment() {
                 toJailedImg.visibility = if (statusImage != 0) View.VISIBLE else View.GONE
                 toJailedImg.setImageResource(statusImage)
 
-                initiaToValidator.commission.commissionRates.rate.toBigDecimal().movePointLeft(16)
-                    .setScale(2, RoundingMode.DOWN).let {
+                initiaToValidator.commission.commissionRates.rate.toBigDecimalOrNull()?.movePointLeft(16)
+                    ?.setScale(2, RoundingMode.DOWN)?.let {
                         commission.text = formatString("$it%", 3)
 
                         txSimulate()
@@ -390,8 +390,8 @@ class ReDelegateFragment : BaseTxFragment() {
                 toJailedImg.visibility = if (statusImage != 0) View.VISIBLE else View.GONE
                 toJailedImg.setImageResource(statusImage)
 
-                toValidator.commission.commissionRates.rate.toBigDecimal().movePointLeft(16)
-                    .setScale(2, RoundingMode.DOWN).let {
+                toValidator.commission.commissionRates.rate.toBigDecimalOrNull()?.movePointLeft(16)
+                    ?.setScale(2, RoundingMode.DOWN)?.let {
                         commission.text = formatString("$it%", 3)
 
                         txSimulate()
@@ -408,7 +408,8 @@ class ReDelegateFragment : BaseTxFragment() {
 
             BaseData.getAsset(selectedChain.apiName, selectedChain.getStakeAssetDenom())?.let { asset ->
                 val price = BaseData.getPrice(asset.coinGeckoId)
-                val dpAmount = BigDecimal(toAmount).movePointLeft(asset.decimals ?: 6)
+                val amount = toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO
+                val dpAmount = amount.movePointLeft(asset.decimals ?: 6)
                     .setScale(asset.decimals ?: 6, RoundingMode.DOWN)
                 val value = price.multiply(dpAmount)
 
@@ -422,7 +423,7 @@ class ReDelegateFragment : BaseTxFragment() {
                 redelegateDenom.visibility = View.VISIBLE
                 redelegateDenom.text = asset.symbol
                 redelegateDenom.setTextColor(asset.assetColor())
-                redelegateValue.text = formatAssetValue(value)
+                redelegateValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
             }
             txSimulate()
         }
@@ -457,12 +458,12 @@ class ReDelegateFragment : BaseTxFragment() {
                     feeTokenImg.setTokenImg(asset)
                     feeToken.text = asset.symbol
 
-                    val amount = fee.amount.toBigDecimal().amountHandlerLeft(asset.decimals ?: 6)
+                    val amount = fee.amount.toBigDecimalOrNull()?.amountHandlerLeft(asset.decimals ?: 6) ?: BigDecimal.ZERO
                     val price = BaseData.getPrice(asset.coinGeckoId)
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
 
                 availableAmount = when (selectedChain) {

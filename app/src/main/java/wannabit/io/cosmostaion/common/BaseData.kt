@@ -64,7 +64,7 @@ object BaseData {
     }
 
     fun lastUpDown(coinGeckoId: String?): BigDecimal {
-        if (coinGeckoId == "cnho") {
+        if (coinGeckoId == "cnho" || coinGeckoId?.contains("vndo") == true) {
             return ((cnhoPrice - 1.0) / 1.0 * 100).toBigDecimal()
                 .setScale(2, RoundingMode.HALF_DOWN)
         }

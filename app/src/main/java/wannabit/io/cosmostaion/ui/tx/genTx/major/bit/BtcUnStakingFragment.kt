@@ -196,7 +196,7 @@ class BtcUnStakingFragment(
                 ?.let { asset ->
                     val toStakeAmount =
                         btcActiveStakingData?.first?.get("delegation_staking")?.asJsonObject?.get("staking_amount")?.asLong.toString()
-                    val amount = toStakeAmount.toBigDecimal().movePointLeft(asset.decimals ?: 8)
+                    val amount = (toStakeAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).movePointLeft(asset.decimals ?: 8)
                         .setScale(asset.decimals ?: 8, RoundingMode.DOWN)
                     undelegateAmount.text =
                         formatAmount(amount.toPlainString(), asset.decimals ?: 8)
@@ -275,7 +275,7 @@ class BtcUnStakingFragment(
         txViewModel.simulate.observe(viewLifecycleOwner) { data ->
             val response = JsonParser.parseString(data).asJsonObject
             txData = response["transactionHex"].asString
-            btcFeeAmount = response["fee"].asString.toBigDecimal()
+            btcFeeAmount = response["fee"].asString.toBigDecimalOrNull() ?: BigDecimal.ZERO
 
             updateFeeView()
             isBroadCastTx(true)

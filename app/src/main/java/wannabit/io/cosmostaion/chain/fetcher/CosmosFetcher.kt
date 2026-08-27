@@ -153,7 +153,9 @@ open class CosmosFetcher(private val chain: BaseChain) {
             val price = BaseData.getPrice(asset.coinGeckoId, isUsd)
             val amount = balanceAmount(denom)
             asset.decimals?.let { decimal ->
-                return price.multiply(amount).movePointLeft(decimal).setScale(6, RoundingMode.DOWN)
+                val result = price.multiply(amount).movePointLeft(decimal)
+                val scale = if (asset.coinGeckoId?.contains("vndo") == true) 12 else 6
+                return result.setScale(scale, RoundingMode.DOWN)
             } ?: run {
                 return BigDecimal.ZERO
             }

@@ -213,7 +213,7 @@ class IotaUnStakingFragment(
 
     private fun setUpSimulate() {
         txViewModel.simulate.observe(viewLifecycleOwner) { gasUsed ->
-            iotaFeeBudget = gasUsed?.toBigDecimal()
+            iotaFeeBudget = gasUsed?.toBigDecimalOrNull() ?: BigDecimal.ZERO
             updateFeeView()
             isBroadCastTx(true)
         }

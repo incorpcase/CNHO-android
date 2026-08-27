@@ -55,6 +55,7 @@ import wannabit.io.cosmostaion.ui.tx.option.general.BaseFeeAssetFragment
 import wannabit.io.cosmostaion.ui.tx.option.general.BaseFeeAssetSelectListener
 import wannabit.io.cosmostaion.ui.tx.option.general.MemoFragment
 import wannabit.io.cosmostaion.ui.tx.option.general.MemoListener
+import java.math.BigDecimal
 import java.math.RoundingMode
 
 class NftTransferFragment(
@@ -235,12 +236,13 @@ class NftTransferFragment(
                     feeTokenImg.setTokenImg(asset)
                     feeToken.text = asset.symbol
 
-                    val amount = fee.amount.toBigDecimal().amountHandlerLeft(asset.decimals ?: 6)
+                    val amount = (fee.amount.toBigDecimalOrNull()
+                        ?: BigDecimal.ZERO).amountHandlerLeft(asset.decimals ?: 6)
                     val price = BaseData.getPrice(asset.coinGeckoId)
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
             }
         }
@@ -294,7 +296,7 @@ class NftTransferFragment(
                                             ?.let { baseFee ->
                                                 val feeAmount = baseFee.getdAmount()
                                                     .multiply(fee.gasLimit.toBigDecimal())
-                                                    ?.setScale(0, RoundingMode.DOWN)
+                                                    .setScale(0, RoundingMode.DOWN)
                                                 val updateFeeCoin =
                                                     CoinProto.Coin.newBuilder().setDenom(denom)
                                                         .setAmount(feeAmount.toString()).build()
@@ -323,10 +325,11 @@ class NftTransferFragment(
                                                 val updateFeeCoin =
                                                     CoinProto.Coin.newBuilder().setDenom(denom)
                                                         .setAmount(
-                                                            feeCoin.gasRate?.multiply(
+                                                            (feeCoin.gasRate?.multiply(
                                                                 gasAmount
-                                                            )?.setScale(0, RoundingMode.UP)
-                                                                .toString()
+                                                            ) ?: BigDecimal.ZERO).setScale(
+                                                                0, RoundingMode.UP
+                                                            ).toString()
                                                         ).build()
 
                                                 txFee = TxProto.Fee.newBuilder().setGasLimit(
@@ -349,11 +352,11 @@ class NftTransferFragment(
                     val baseFee = fromChain.cosmosFetcher?.cosmosBaseFees?.firstOrNull {
                         it.denom == txFee?.getAmount(0)?.denom
                     }
-                    val gasAmount = txFee?.gasLimit?.toBigDecimal()
+                    val gasAmount = txFee?.gasLimit?.toBigDecimal() ?: BigDecimal.ZERO
                     val feeDenom = baseFee?.denom
                     val feeAmount =
                         baseFee?.getdAmount()?.multiply(gasAmount)?.setScale(0, RoundingMode.DOWN)
-                    txFee = TxProto.Fee.newBuilder().setGasLimit(gasAmount!!.toLong()).addAmount(
+                    txFee = TxProto.Fee.newBuilder().setGasLimit(gasAmount.toLong()).addAmount(
                         CoinProto.Coin.newBuilder().setDenom(feeDenom)
                             .setAmount(feeAmount.toString()).build()
                     ).build()
@@ -450,7 +453,7 @@ class NftTransferFragment(
 
     private fun updateFeeViewWithSimulate(gasUsed: String?) {
         txFee?.let { fee ->
-            gasUsed?.toLong()?.let { gas ->
+            gasUsed?.toLongOrNull()?.let { gas ->
                 val gasLimit =
                     (gas.toDouble() * fromChain.simulatedGasMultiply()).toLong().toBigDecimal()
                 if (fromChain.cosmosFetcher?.cosmosBaseFees?.isNotEmpty() == true) {
@@ -471,9 +474,9 @@ class NftTransferFragment(
                 } else {
                     val selectedFeeData =
                         feeInfos[selectedFeeInfo].feeDatas.firstOrNull { it.denom == fee.getAmount(0).denom }
-                    val gasRate = selectedFeeData?.gasRate
+                    val gasRate = selectedFeeData?.gasRate ?: BigDecimal.ZERO
 
-                    val feeCoinAmount = gasRate?.multiply(gasLimit)?.setScale(0, RoundingMode.UP)
+                    val feeCoinAmount = gasRate.multiply(gasLimit).setScale(0, RoundingMode.UP)
                     val feeCoin = CoinProto.Coin.newBuilder().setDenom(fee.getAmount(0).denom)
                         .setAmount(feeCoinAmount.toString()).build()
                     txFee =

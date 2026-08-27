@@ -131,7 +131,7 @@ class EvmUnStakingFragment : BaseTxFragment() {
             }
             selectedChain.cosmosFetcher?.cosmosDelegations?.firstOrNull { it.delegation.validatorAddress == validator?.operatorAddress }
                 ?.let {
-                    availableAmount = it.balance.amount.toBigDecimal()
+                    availableAmount = it.balance.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO
                 }
             updateValidatorView()
         }
@@ -198,7 +198,7 @@ class EvmUnStakingFragment : BaseTxFragment() {
                 asset.decimals?.let { decimal ->
                     val staked =
                         selectedChain.cosmosFetcher?.cosmosDelegations?.firstOrNull { it.delegation.validatorAddress == validator?.operatorAddress }?.balance?.amount
-                    staked?.toBigDecimal()?.movePointLeft(decimal)?.let {
+                    (staked?.toBigDecimalOrNull() ?: BigDecimal.ZERO).movePointLeft(decimal).let {
                         stakedAmount.text = formatAmount(it.toPlainString(), decimal)
                     }
                 }
@@ -215,7 +215,7 @@ class EvmUnStakingFragment : BaseTxFragment() {
 
             BaseData.getAsset(selectedChain.apiName, selectedChain.getMainAssetDenom())?.let { asset ->
                 asset.decimals?.let { decimal ->
-                    val dpAmount = BigDecimal(toAmount).movePointLeft(decimal)
+                    val dpAmount = (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).movePointLeft(decimal)
                         .setScale(decimal, RoundingMode.DOWN)
                     undelegateAmountMsg.visibility = View.GONE
                     undelegateAmount.text = formatAmount(dpAmount.toPlainString(), decimal)

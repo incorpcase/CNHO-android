@@ -453,7 +453,7 @@ class ClaimRewardFragment : BaseTxFragment() {
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
             }
         }

@@ -758,7 +758,7 @@ class CommonTransferFragment : BaseTxFragment() {
                 when (sendAssetType) {
                     SendAssetType.ONLY_EVM_COIN -> {
                         val price = BaseData.getPrice(toSendAsset?.coinGeckoId)
-                        val dpAmount = toAmount.toBigDecimal().amountHandlerLeft(18)
+                        val dpAmount = toAmount.toBigDecimalOrNull()?.amountHandlerLeft(18) ?: BigDecimal.ZERO
                         val value = price.multiply(dpAmount)
                         sendAmount.text = formatAmount(dpAmount.toPlainString(), 18)
                         sendDenom.text = toSendAsset?.symbol
@@ -768,7 +768,7 @@ class CommonTransferFragment : BaseTxFragment() {
                     SendAssetType.ONLY_COSMOS_COIN -> {
                         toSendAsset?.let { asset ->
                             val dpAmount =
-                                toAmount.toBigDecimal().amountHandlerLeft(asset.decimals ?: 6)
+                                (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).amountHandlerLeft(asset.decimals ?: 6)
                             val price = BaseData.getPrice(asset.coinGeckoId)
                             val value = price.multiply(dpAmount)
                             sendAmount.text =
@@ -782,7 +782,7 @@ class CommonTransferFragment : BaseTxFragment() {
                     SendAssetType.ONLY_COSMOS_CW20, SendAssetType.ONLY_EVM_ERC20, SendAssetType.ONLY_COSMOS_GRC20 -> {
                         toSendToken?.let { token ->
                             val price = BaseData.getPrice(token.coinGeckoId)
-                            val dpAmount = toAmount.toBigDecimal().amountHandlerLeft(token.decimals)
+                            val dpAmount = (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).amountHandlerLeft(token.decimals)
                             val value = price.multiply(dpAmount)
                             sendAmount.text = formatAmount(dpAmount.toPlainString(), token.decimals)
                             sendDenom.text = token.symbol
@@ -795,7 +795,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             val coinGeckoId = assetGeckoId(toSendDenom)
                             val price = BaseData.getPrice(coinGeckoId)
                             val dpAmount =
-                                toAmount.toBigDecimal().amountHandlerLeft(assetDecimal(toSendDenom))
+                                (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).amountHandlerLeft(assetDecimal(toSendDenom))
                             val value = price.multiply(dpAmount)
                             sendAmount.text =
                                 formatAmount(dpAmount.toPlainString(), assetDecimal(toSendDenom))
@@ -809,7 +809,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             val coinGeckoId = assetGeckoId(toSendDenom)
                             val price = BaseData.getPrice(coinGeckoId)
                             val dpAmount =
-                                toAmount.toBigDecimal().amountHandlerLeft(assetDecimal(toSendDenom))
+                                (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).amountHandlerLeft(assetDecimal(toSendDenom))
                             val value = price.multiply(dpAmount)
                             sendAmount.text =
                                 formatAmount(dpAmount.toPlainString(), assetDecimal(toSendDenom))
@@ -821,7 +821,7 @@ class CommonTransferFragment : BaseTxFragment() {
                     SendAssetType.BIT_COIN -> {
                         (fromChain as ChainBitCoin86).apply {
                             val price = BaseData.getPrice(toSendAsset?.coinGeckoId)
-                            val dpAmount = toAmount.toBigDecimal().amountHandlerLeft(8)
+                            val dpAmount = (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).amountHandlerLeft(8)
                             val value = price.multiply(dpAmount)
                             sendAmount.text = formatAmount(dpAmount.toPlainString(), 8)
                             sendDenom.text = fromChain.getMainAssetSymbol()
@@ -832,7 +832,7 @@ class CommonTransferFragment : BaseTxFragment() {
                     SendAssetType.SOLANA_COIN -> {
                         (fromChain as ChainSolana).apply {
                             val price = BaseData.getPrice(toSendAsset?.coinGeckoId)
-                            val dpAmount = toAmount.toBigDecimal()
+                            val dpAmount = (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO)
                                 .amountHandlerLeft(toSendAsset?.decimals ?: 9)
                             val value = price.multiply(dpAmount)
 
@@ -846,7 +846,7 @@ class CommonTransferFragment : BaseTxFragment() {
                     SendAssetType.SOLANA_TOKEN -> {
                         (fromChain as ChainSolana).apply {
                             val price = BaseData.getPrice(toSendToken?.coinGeckoId)
-                            val dpAmount = toAmount.toBigDecimal()
+                            val dpAmount = (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO)
                                 .amountHandlerLeft(toSendToken?.decimals ?: 9)
                             val value = price.multiply(dpAmount)
 
@@ -859,7 +859,7 @@ class CommonTransferFragment : BaseTxFragment() {
 
                     SendAssetType.APTOS_COIN -> {
                         val price = BaseData.getPrice(toSendAsset?.coinGeckoId)
-                        val dpAmount = toAmount.toBigDecimal()
+                        val dpAmount = (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO)
                             .amountHandlerLeft(toSendAsset?.decimals ?: 8)
                         val value = price.multiply(dpAmount)
 
@@ -912,7 +912,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             val value = price.multiply(dpAmount)
 
                             feeAmount.text = formatAmount(dpAmount.toString(), 18)
-                            feeValue.text = formatAssetValue(value)
+                            feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                         }
                     }
                 }
@@ -1012,7 +1012,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             feeToken.text = asset.symbol
 
                             val amount =
-                                fee.amount.toBigDecimal().amountHandlerLeft(asset.decimals ?: 6)
+                                (fee.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO).amountHandlerLeft(asset.decimals ?: 6)
                             val price = BaseData.getPrice(asset.coinGeckoId)
                             val value = price.multiply(amount)
 
@@ -1066,7 +1066,7 @@ class CommonTransferFragment : BaseTxFragment() {
                         transferStyle,
                         object : AmountSelectListener {
                             override fun select(toAmount: String) {
-                                if (toAmount.toBigDecimal() <= BigDecimal.ZERO) return
+                                if ((toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO) <= BigDecimal.ZERO) return
                                 updateAmountView(toAmount)
                             }
                         })
@@ -1215,7 +1215,7 @@ class CommonTransferFragment : BaseTxFragment() {
             if (toSendAmount.isEmpty() || toAddress.isEmpty()) {
                 return
             }
-            if (toSendAmount.toBigDecimal() <= BigDecimal.ZERO) {
+            if ((toSendAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO) <= BigDecimal.ZERO) {
                 return
             }
             assetPath = assetPath(fromChain, toChain, toSendDenom)
@@ -1725,15 +1725,15 @@ class CommonTransferFragment : BaseTxFragment() {
             lifecycleScope.launch(Dispatchers.IO) {
                 (fromChain as ChainBitCoin86).apply {
                     utxo = bitData.first
-                    bitGasRate = bitData.second.toBigDecimal()
-                    bitVBytesFee = btcFetcher()?.bitVBytesFee(utxo, txMemo)
+                    bitGasRate = bitData.second.toBigDecimalOrNull() ?: BigDecimal.ZERO
+                    bitVBytesFee = btcFetcher()?.bitVBytesFee(utxo, txMemo) ?: BigDecimal.ZERO
                     bitFee = bitGasRate.multiply(bitVBytesFee).movePointRight(5)
                         .setScale(0, RoundingMode.UP)
 
-                    availableAmount = if (bitFee >= btcFetcher?.btcBalances) {
+                    availableAmount = if (bitFee >= (btcFetcher?.btcBalances ?: BigDecimal.ZERO)) {
                         BigDecimal.ZERO
                     } else {
-                        btcFetcher?.btcBalances?.subtract(bitFee)
+                        (btcFetcher?.btcBalances ?: BigDecimal.ZERO).subtract(bitFee)
                     }
                 }
                 withContext(Dispatchers.Main) {
@@ -1749,13 +1749,13 @@ class CommonTransferFragment : BaseTxFragment() {
             (fromChain as ChainSolana).apply {
                 if (rent != "error") {
                     availableAmount = if (sendAssetType == SendAssetType.SOLANA_COIN) {
-                        solanaMinimumRentAmount = rent.toBigDecimal()
-                        solanaFetcher?.solanaBalanceAmount()?.subtract(solanaMinimumRentAmount)
+                        solanaMinimumRentAmount = rent.toBigDecimalOrNull() ?: BigDecimal.ZERO
+                        (solanaFetcher?.solanaBalanceAmount() ?: BigDecimal.ZERO).subtract(solanaMinimumRentAmount)
                             ?.subtract(BigDecimal(20000L))
                     } else {
-                        solanaMinimumRentAmount = rent.toBigDecimal()
-                        toSendToken?.amount?.toBigDecimal()
-                    }
+                        solanaMinimumRentAmount = rent.toBigDecimalOrNull() ?: BigDecimal.ZERO
+                        toSendToken?.amount?.toBigDecimalOrNull()
+                    } ?: BigDecimal.ZERO
 
                     if (availableAmount <= BigDecimal.ZERO) {
                         availableAmount = BigDecimal.ZERO
@@ -1789,7 +1789,7 @@ class CommonTransferFragment : BaseTxFragment() {
         txViewModel.solSimulate.observe(viewLifecycleOwner) { response ->
             response.first?.let { hexValue ->
                 solanaTxHex = hexValue
-                updateFeeViewWithSimulate(response.second as String)
+                updateFeeViewWithSimulate(response.second as? String)
 
                 binding.btnSend.apply {
                     setText(
@@ -1806,10 +1806,10 @@ class CommonTransferFragment : BaseTxFragment() {
             response.second?.let { hexValue ->
                 solanaTxHex = hexValue
                 val fee = if (response.first == true) {
-                    (response.third as String).toBigDecimal().add(solanaMinimumRentAmount)
+                    ((response.third as? String)?.toBigDecimalOrNull() ?: BigDecimal.ZERO).add(solanaMinimumRentAmount)
                         .toString()
                 } else {
-                    response.third as String
+                    response.third as? String
                 }
                 updateFeeViewWithSimulate(fee)
             }

@@ -220,8 +220,8 @@ class CoinMintFragment : BaseTxFragment() {
                 } else if (userInput.contains(".")) {
                     val decimalPlaces: Int = userInput.length - userInput.indexOf(".") - 1
                     if (decimalPlaces == burnAsset.decimals) {
-                        if (userInput.toBigDecimal()
-                                .handlerRight(burnAsset.decimals ?: 6, 0) == BigDecimal.ZERO
+                        val amount = userInput.toBigDecimalOrNull() ?: BigDecimal.ZERO
+                        if (amount.handlerRight(burnAsset.decimals ?: 6, 0) == BigDecimal.ZERO
                         ) {
                             s?.delete(s.length - 1, s.length)
                         }
@@ -245,8 +245,8 @@ class CoinMintFragment : BaseTxFragment() {
                 return
             }
 
-            val dpBurnAmount = burnText.toBigDecimal().movePointRight(burnAsset.decimals ?: 6)
-                .setScale(0, RoundingMode.DOWN)
+            val dpBurnAmount = burnText.toBigDecimalOrNull()?.movePointRight(burnAsset.decimals ?: 6)
+                ?.setScale(0, RoundingMode.DOWN) ?: BigDecimal.ZERO
             toBurnAmount = dpBurnAmount.toPlainString()
 
             if (dpBurnAmount == BigDecimal.ZERO || availableAmount < dpBurnAmount) {
@@ -258,15 +258,16 @@ class CoinMintFragment : BaseTxFragment() {
             invalidMsg.visibility = View.INVISIBLE
 
             val burnPrice = BaseData.getPrice(burnAsset.coinGeckoId)
-            val burnValue = burnPrice.multiply(burnText.toBigDecimal())
-            burnAmountValue.text = formatAssetValue(burnValue)
+            val burnAmountDecimal = burnText.toBigDecimalOrNull() ?: BigDecimal.ZERO
+            val burnValue = burnPrice.multiply(burnAmountDecimal)
+            burnAmountValue.text = formatAssetValue(burnValue, coinGeckoId = burnAsset.coinGeckoId)
 
-            val mintAmountTxt = burnText.toBigDecimal().multiply(mintRate)
+            val mintAmountTxt = burnAmountDecimal.multiply(mintRate)
                 .setScale(mintAsset.decimals ?: 6, RoundingMode.DOWN)
             val mintPrice = BaseData.getPrice(mintAsset.coinGeckoId)
             val mintValue = mintPrice.multiply(mintAmountTxt)
             mintAmount.text = formatAmount(mintAmountTxt.toPlainString(), mintAsset.decimals ?: 6)
-            mintAmountValue.text = formatAssetValue(mintValue)
+            mintAmountValue.text = formatAssetValue(mintValue, coinGeckoId = mintAsset.coinGeckoId)
 
             txSimulate()
         }
@@ -301,19 +302,19 @@ class CoinMintFragment : BaseTxFragment() {
                     feeTokenImg.setTokenImg(asset)
                     feeToken.text = asset.symbol
 
-                    val amount = fee.amount.toBigDecimal().amountHandlerLeft(asset.decimals ?: 6)
+                    val amount = fee.amount.toBigDecimalOrNull()?.amountHandlerLeft(asset.decimals ?: 6) ?: BigDecimal.ZERO
                     val price = BaseData.getPrice(asset.coinGeckoId)
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
 
                     val balanceAmount =
                         selectedChain.cosmosFetcher?.availableAmount(selectedChain.getStakeAssetDenom())
 
                     txFee?.let {
                         availableAmount = if (it.getAmount(0).denom == selectedChain.getStakeAssetDenom()) {
-                            val feeAmount = it.getAmount(0).amount.toBigDecimal()
+                            val feeAmount = it.getAmount(0).amount.toBigDecimalOrNull() ?: BigDecimal.ZERO
                             if (feeAmount > balanceAmount) {
                                 BigDecimal.ZERO
                             } else {
@@ -338,7 +339,7 @@ class CoinMintFragment : BaseTxFragment() {
             binding.apply {
                 loading.visibility = View.GONE
                 txLayout.visibility = View.VISIBLE
-                mintRate = rate?.toBigDecimal()
+                mintRate = rate?.toBigDecimalOrNull() ?: BigDecimal.ZERO
                 val dpMintRate = mintRate.setScale(2, RoundingMode.DOWN)
                 mintingRateTxt.text = "1 ATONE ≈ " + dpMintRate + " PHOTON"
             }
@@ -519,7 +520,8 @@ class CoinMintFragment : BaseTxFragment() {
     private fun txSimulate() {
         binding.apply {
             val burnText = burnAmountTxt.text.toString().trim()
-            if (burnAmountTxt.text.isEmpty() || burnText.toBigDecimal() <= BigDecimal.ZERO) {
+            val amount = burnText.toBigDecimalOrNull() ?: BigDecimal.ZERO
+            if (burnAmountTxt.text.isEmpty() || amount <= BigDecimal.ZERO) {
                 return
             }
             if (!selectedChain.isSimulable()) {

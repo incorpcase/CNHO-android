@@ -54,11 +54,7 @@ class AssetSelectViewHolder(
 
             chain?.let { chain ->
                 BaseData.getAsset(chain.apiName, asset.denom)?.let { asset ->
-                    val amount =
-                        balances?.firstOrNull { it.denom == asset.denom }?.amount?.toBigDecimal()
-                            ?: run {
-                                BigDecimal.ZERO
-                            }
+                    val amount = chain.cosmosFetcher?.balanceAmount(asset.denom ?: "") ?: BigDecimal.ZERO
                     val dpAmount = amount.movePointLeft(asset.decimals ?: 6)
                         .setScale(asset.decimals ?: 6, RoundingMode.DOWN)
 

@@ -119,8 +119,8 @@ class EvmCancelUnStakingFragment : BaseTxFragment() {
                 }
 
             BaseData.getAsset(selectedChain.apiName, selectedChain.getMainAssetDenom())?.let { asset ->
-                val unBondingAmount = unBondingEntry.entry?.balance?.toBigDecimal()
-                    ?.movePointLeft(asset.decimals ?: 6) ?: BigDecimal.ZERO
+                val unBondingAmount = (unBondingEntry.entry?.balance?.toBigDecimalOrNull()
+                    ?: BigDecimal.ZERO).movePointLeft(asset.decimals ?: 6)
                 cancelAmount.text =
                     formatAmount(unBondingAmount.toPlainString(), asset.decimals ?: 6)
                 cancelDenom.text = asset.symbol

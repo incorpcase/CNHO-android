@@ -172,7 +172,7 @@ class OktSelectValidatorFragment : BaseTxFragment() {
             val value = price.multiply(gasFee).setScale(6, RoundingMode.DOWN)
             feeAmount.text = formatAmount(gasFee.toPlainString(), 18)
             feeDenom.text = chain.getGasAssetDenom().uppercase()
-            feeValue.text = formatAssetValue(value)
+            feeValue.text = formatAssetValue(value, coinGeckoId = coinGeckoId)
         }
     }
 

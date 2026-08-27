@@ -163,7 +163,7 @@ class LegacyTransferFragment : BaseTxFragment() {
             amountLayout.visibility = View.VISIBLE
             toSendAmount = toAmount
 
-            val dpAmount = BigDecimal(toAmount).setScale(18, RoundingMode.DOWN)
+            val dpAmount = toAmount.toBigDecimalOrNull()?.setScale(18, RoundingMode.DOWN) ?: BigDecimal.ZERO
             sendAmount.text = formatAmount(dpAmount.toPlainString(), 18)
 
             if (toSendDenom == fromChain.getStakeAssetDenom()) {
@@ -313,7 +313,7 @@ class LegacyTransferFragment : BaseTxFragment() {
             if (toSendAmount.isEmpty()) {
                 return
             }
-            if (toSendAmount.toBigDecimal() <= BigDecimal.ZERO) {
+            if ((toSendAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO) <= BigDecimal.ZERO) {
                 return
             }
             binding.btnSend.updateButtonView(true)

@@ -259,7 +259,7 @@ class UnStakingFragment : BaseTxFragment() {
 
                     val staked =
                         selectedChain.cosmosFetcher?.cosmosDelegations?.firstOrNull { it.delegation.validatorAddress == validator.operatorAddress }?.balance?.amount
-                    staked?.toBigDecimal()?.movePointLeft(asset.decimals ?: 6)?.let {
+                    staked?.toBigDecimalOrNull()?.movePointLeft(asset.decimals ?: 6)?.let {
                         stakedAmount.text = formatAmount(it.toPlainString(), asset.decimals ?: 6)
                     }
                 }
@@ -278,7 +278,7 @@ class UnStakingFragment : BaseTxFragment() {
 
                     val staked =
                         (selectedChain as ChainInitia).initiaFetcher()?.initiaDelegations?.firstOrNull { it.delegation.validatorAddress == validator.operatorAddress }?.balanceList?.firstOrNull { it.denom == selectedChain.getStakeAssetDenom() }?.amount
-                    staked?.toBigDecimal()?.movePointLeft(asset.decimals ?: 6)?.let {
+                    staked?.toBigDecimalOrNull()?.movePointLeft(asset.decimals ?: 6)?.let {
                         stakedAmount.text = formatAmount(it.toPlainString(), asset.decimals ?: 6)
                     }
                 }
@@ -297,7 +297,7 @@ class UnStakingFragment : BaseTxFragment() {
 
                     val staked =
                         (selectedChain as ChainZenrock).zenrockFetcher()?.zenrockDelegations?.firstOrNull { it.delegation.validatorAddress == validator.operatorAddress }?.balance?.amount
-                    staked?.toBigDecimal()?.movePointLeft(asset.decimals ?: 6)?.let {
+                    staked?.toBigDecimalOrNull()?.movePointLeft(asset.decimals ?: 6)?.let {
                         stakedAmount.text = formatAmount(it.toPlainString(), asset.decimals ?: 6)
                     }
                 }
@@ -313,7 +313,7 @@ class UnStakingFragment : BaseTxFragment() {
 
             BaseData.getAsset(selectedChain.apiName, selectedChain.getStakeAssetDenom())?.let { asset ->
                 val price = BaseData.getPrice(asset.coinGeckoId)
-                val dpAmount = BigDecimal(toAmount).movePointLeft(asset.decimals ?: 6)
+                val dpAmount = (toAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO).movePointLeft(asset.decimals ?: 6)
                     .setScale(asset.decimals ?: 6, RoundingMode.DOWN)
                 val value = price.multiply(dpAmount)
 
@@ -327,7 +327,7 @@ class UnStakingFragment : BaseTxFragment() {
                 undelegateDenom.visibility = View.VISIBLE
                 undelegateDenom.text = asset.symbol
                 undelegateDenom.setTextColor(asset.assetColor())
-                undelegateValue.text = formatAssetValue(value)
+                undelegateValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
             }
             txSimulate()
         }
@@ -362,30 +362,30 @@ class UnStakingFragment : BaseTxFragment() {
                     feeTokenImg.setTokenImg(asset)
                     feeToken.text = asset.symbol
 
-                    val amount = fee.amount.toBigDecimal().amountHandlerLeft(asset.decimals ?: 6)
+                    val amount = (fee.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO).amountHandlerLeft(asset.decimals ?: 6)
                     val price = BaseData.getPrice(asset.coinGeckoId)
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
 
                 availableAmount = when (selectedChain) {
                     is ChainInitia -> {
                         (selectedChain as ChainInitia).initiaFetcher()?.initiaDelegations?.firstOrNull { it.delegation.validatorAddress == initiaValidator?.operatorAddress }
                             ?.let {
-                                it.balanceList.firstOrNull { balance -> balance.denom == selectedChain.getStakeAssetDenom() }?.amount?.toBigDecimal()
+                                it.balanceList.firstOrNull { balance -> balance.denom == selectedChain.getStakeAssetDenom() }?.amount?.toBigDecimalOrNull()
                             }
                     }
 
                     is ChainZenrock -> {
-                        (selectedChain as ChainZenrock).zenrockFetcher()?.zenrockDelegations?.firstOrNull { it.delegation.validatorAddress == zenrockValidator?.operatorAddress }?.balance?.amount?.toBigDecimal()
+                        (selectedChain as ChainZenrock).zenrockFetcher()?.zenrockDelegations?.firstOrNull { it.delegation.validatorAddress == zenrockValidator?.operatorAddress }?.balance?.amount?.toBigDecimalOrNull()
                     }
 
                     else -> {
-                        selectedChain.cosmosFetcher?.cosmosDelegations?.firstOrNull { it.delegation.validatorAddress == validator?.operatorAddress }?.balance?.amount?.toBigDecimal()
+                        selectedChain.cosmosFetcher?.cosmosDelegations?.firstOrNull { it.delegation.validatorAddress == validator?.operatorAddress }?.balance?.amount?.toBigDecimalOrNull()
                     }
-                }
+                } ?: BigDecimal.ZERO
             }
         }
     }

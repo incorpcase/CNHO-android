@@ -86,9 +86,16 @@ class ApplicationViewModel(
             is NetworkResult.Success -> {
                 response.data.let { data ->
                     BaseData.prices = data
-                    BaseData.cnhoPrice = 1.0 // Fixed 1:1 with CNY for discovery baseline
-                    
-                    BaseData.assets?.filter { it.chain == "cnho" && it.denom != "ucnho" }?.forEach { asset ->
+                    val cnhoPriceObj = data.firstOrNull { it.coinGeckoId == "cnho" }
+                    BaseData.cnhoPrice = cnhoPriceObj?.current_price ?: 1.0
+
+                    val cnhoAssets = BaseData.assets?.filter { it.chain == "cnho" && it.denom != "ucnho" }?.toMutableList() ?: mutableListOf()
+                    val vndoDenom = "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo"
+                    if (cnhoAssets.none { it.denom == vndoDenom }) {
+                        BaseData.getAsset("cnho", vndoDenom)?.let { cnhoAssets.add(it) }
+                    }
+
+                    cnhoAssets.forEach { asset ->
                         asset.denom?.let { denom ->
                             val offerAmount = Math.pow(10.0, (asset.decimals ?: 6).toDouble()).toLong().toString()
                             val result = if (denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {

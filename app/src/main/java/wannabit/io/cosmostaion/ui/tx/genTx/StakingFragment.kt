@@ -334,7 +334,7 @@ class StakingFragment : BaseTxFragment() {
                 delegateDenom.visibility = View.VISIBLE
                 delegateDenom.text = asset.symbol
                 delegateDenom.setTextColor(asset.assetColor())
-                delegateValue.text = formatAssetValue(value)
+                delegateValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
             }
             txSimulate()
         }
@@ -374,7 +374,7 @@ class StakingFragment : BaseTxFragment() {
                     val value = price.multiply(amount)
 
                     feeAmount.text = formatAmount(amount.toPlainString(), asset.decimals ?: 6)
-                    feeValue.text = formatAssetValue(value)
+                    feeValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
 
                 val delegateAbleAmount = selectedChain.cosmosFetcher?.delegateAbleAmount()
