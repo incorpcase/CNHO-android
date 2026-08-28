@@ -32,6 +32,8 @@ import wannabit.io.cosmostaion.ui.tx.genTx.TargetAssetType
 import wannabit.io.cosmostaion.ui.tx.option.swap.AssetListener
 import wannabit.io.cosmostaion.ui.tx.option.swap.AssetSelectFragment
 import wannabit.io.cosmostaion.ui.tx.option.swap.AssetSelectType
+import wannabit.io.cosmostaion.database.model.BaseAccount
+import wannabit.io.cosmostaion.database.model.BaseAccountType
 import android.app.Activity
 import android.content.Intent
 import android.os.Build
@@ -90,7 +92,21 @@ class SwapFragment : Fragment() {
         initData()
         initView()
         setUpClickAction()
-        setUpBroadcast()
+
+        binding.inputAmountTxt.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                inputAmount = s.toString().trim()
+                val amount = inputAmount.toBigDecimalOrNull()
+                if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
+                    swapOutputAmount = ""
+                    updateSwapView()
+                    return
+                }
+                simulateSwap()
+            }
+        })
     }
 
     private val swapResultLauncher: ActivityResultLauncher<Intent> =
@@ -125,9 +141,7 @@ class SwapFragment : Fragment() {
             cnhoChain = it as ChainCnho
         }
 
-        if (cnhoChain.fetchState == FetchState.IDLE || cnhoChain.fetchState == FetchState.FAIL) {
-            applicationViewModel.loadChainData(cnhoChain, BaseData.baseAccount?.id ?: -1L, isRefresh = true)
-        }
+        applicationViewModel.loadChainData(cnhoChain, BaseData.baseAccount?.id ?: -1L, isRefresh = true)
 
         initFee()
 
@@ -153,21 +167,6 @@ class SwapFragment : Fragment() {
 
             updateAssetsView()
         }
-
-        binding.inputAmountTxt.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                inputAmount = s.toString().trim()
-                val amount = inputAmount.toBigDecimalOrNull()
-                if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
-                    swapOutputAmount = ""
-                    updateSwapView()
-                    return
-                }
-                simulateSwap()
-            }
-        })
     }
 
     private fun updateAssetsView() {
@@ -182,14 +181,14 @@ class SwapFragment : Fragment() {
 
         binding.apply {
             inputAsset?.let {
-                inputTokenImg.setTokenImg(it.image ?: "")
+                inputTokenImg.setTokenImg(it)
                 inputToken.text = it.symbol
                 val balance = cnhoChain.cosmosFetcher()?.balanceAmount(it.denom ?: "") ?: BigDecimal.ZERO
                 inputAvailable.text = formatAmount(balance.movePointLeft(it.decimals ?: 6).toPlainString(), it.decimals ?: 6)
             }
 
             outputAsset?.let {
-                outputTokenImg.setTokenImg(it.image ?: "")
+                outputTokenImg.setTokenImg(it)
                 outputToken.text = it.symbol
                 val balance = cnhoChain.cosmosFetcher()?.balanceAmount(it.denom ?: "") ?: BigDecimal.ZERO
                 outputAvailable.text = formatAmount(balance.movePointLeft(it.decimals ?: 6).toPlainString(), it.decimals ?: 6)
@@ -255,9 +254,32 @@ class SwapFragment : Fragment() {
     }
 
     private fun setUpObservers() {
-        applicationViewModel.currentAccountResult.observe(viewLifecycleOwner) {
-            initData()
-            initView()
+        applicationViewModel.currentAccountResult.observe(viewLifecycleOwner) { response ->
+            val account = response.second
+            lifecycleScope.launch(Dispatchers.IO) {
+                account?.initAccount()
+                account?.allChains?.firstOrNull { it.tag == cnhoChain.tag }?.let { chain ->
+                    if (chain.publicKey == null) {
+                        if (account.type == BaseAccountType.MNEMONIC) {
+                            account.seed?.let {
+                                chain.setInfoWithSeed(requireContext(), it, chain.setParentPath, account.lastHDPath)
+                            }
+                        } else if (account.type == BaseAccountType.PRIVATE_KEY) {
+                            account.privateKey?.let {
+                                chain.setInfoWithPrivateKey(requireContext(), it)
+                            }
+                        }
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    binding.loading.visibility = View.VISIBLE
+                    inputAmount = ""
+                    swapOutputAmount = ""
+                    binding.inputAmountTxt.setText("")
+                    initData()
+                    initView()
+                }
+            }
         }
 
         applicationViewModel.fetchedResult.observe(viewLifecycleOwner) { tag ->
@@ -319,10 +341,10 @@ class SwapFragment : Fragment() {
                 }?.toMutableList() ?: mutableListOf()
 
                 if (swapAssets.none { it.denom == "ucnho" }) {
-                    swapAssets.add(0, TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/cnho.png", "CNHO", "ucnho", TargetAssetType.NATIVE, "CNHO Stables", 6))
+                    swapAssets.add(0, TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/cnho.png", "CNHO", "ucnho", TargetAssetType.NATIVE, "Offshore China Yuan", 6))
                 }
                 if (swapAssets.none { it.denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo" }) {
-                    swapAssets.add(TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/vndo.png", "VNDO", "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo", TargetAssetType.NATIVE, "VNDO Stablecoin", 6))
+                    swapAssets.add(TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/vndo.png", "VNDO", "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo", TargetAssetType.NATIVE, "Offshore Vietnam Dong", 6))
                 }
 
                 if (parentFragmentManager.findFragmentByTag(AssetSelectFragment::class.java.name) != null) return@setOnClickListener
@@ -345,10 +367,10 @@ class SwapFragment : Fragment() {
                 }?.toMutableList() ?: mutableListOf()
 
                 if (swapAssets.none { it.denom == "ucnho" }) {
-                    swapAssets.add(0, TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/cnho.png", "CNHO", "ucnho", TargetAssetType.NATIVE, "CNHO Stables", 6))
+                    swapAssets.add(0, TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/cnho.png", "CNHO", "ucnho", TargetAssetType.NATIVE, "Offshore China Yuan", 6))
                 }
                 if (swapAssets.none { it.denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo" }) {
-                    swapAssets.add(TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/vndo.png", "VNDO", "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo", TargetAssetType.NATIVE, "VNDO Stablecoin", 6))
+                    swapAssets.add(TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/vndo.png", "VNDO", "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo", TargetAssetType.NATIVE, "Offshore Vietnam Dong", 6))
                 }
 
                 if (parentFragmentManager.findFragmentByTag(AssetSelectFragment::class.java.name) != null) return@setOnClickListener
@@ -502,6 +524,11 @@ class SwapFragment : Fragment() {
     }
 
     private fun Asset.toTargetAsset(): TargetAsset {
+        val description = when (denom) {
+            "ucnho" -> "Offshore China Yuan"
+            "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo" -> "Offshore Vietnam Dong"
+            else -> description
+        }
         return TargetAsset(image, symbol, denom ?: "", TargetAssetType.NATIVE, description, decimals)
     }
 

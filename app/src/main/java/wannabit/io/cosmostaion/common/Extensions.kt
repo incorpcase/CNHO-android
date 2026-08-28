@@ -70,8 +70,10 @@ import wannabit.io.cosmostaion.common.BaseUtils.LANGUAGE_ENGLISH
 import wannabit.io.cosmostaion.data.model.req.JsonRpcRequest
 import wannabit.io.cosmostaion.data.model.res.Asset
 import wannabit.io.cosmostaion.data.model.res.NetworkResult
+import wannabit.io.cosmostaion.data.model.res.Token
 import wannabit.io.cosmostaion.database.Prefs
 import wannabit.io.cosmostaion.databinding.ItemToastBinding
+import wannabit.io.cosmostaion.ui.tx.genTx.TargetAsset
 import xyz.mcxross.kaptos.model.Option
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -249,6 +251,14 @@ fun ImageView.setChainLogo(chain: BaseChain) {
 }
 
 fun ImageView.setTokenImg(asset: Asset) {
+    if (asset.denom == "ucnho") {
+        setImageResource(R.drawable.token_cnho)
+        return
+    }
+    if (asset.denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {
+        setImageResource(R.drawable.token_vndo)
+        return
+    }
     dispose()
     tag = asset.image
 
@@ -263,6 +273,30 @@ fun ImageView.setTokenImg(asset: Asset) {
             setImageResource(R.drawable.token_default)
         })
     }
+}
+
+fun ImageView.setTokenImg(token: Token) {
+    if (token.address == "ucnho") {
+        setImageResource(R.drawable.token_cnho)
+        return
+    }
+    if (token.address == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {
+        setImageResource(R.drawable.token_vndo)
+        return
+    }
+    setTokenImg(token.image)
+}
+
+fun ImageView.setTokenImg(asset: TargetAsset) {
+    if (asset.denom == "ucnho") {
+        setImageResource(R.drawable.token_cnho)
+        return
+    }
+    if (asset.denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {
+        setImageResource(R.drawable.token_vndo)
+        return
+    }
+    setTokenImg(asset.image ?: "")
 }
 
 fun ImageView.setTokenImg(tokenImg: String) {

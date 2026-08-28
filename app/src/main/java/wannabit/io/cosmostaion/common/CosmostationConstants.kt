@@ -17,7 +17,7 @@ object CosmostationConstants {
     const val EXPLORER_BASE_TX_URL = "https://www.mintscan.io/{apiName}/tx/{hash}"
     const val CHAIN_BASE_URL =
         "https://raw.githubusercontent.com/cosmostation/chainlist/master/chain/"
-    const val CHAIN_MONIKER_URL = "https://serve.dev-mintscan.com/assets/moniker/"
+    const val CHAIN_MONIKER_URL = "https://serve.mintscan.io/assets/moniker/"
     const val WALLET_BASE_URL =
         "https://raw.githubusercontent.com/cosmostation/chainlist/master/wallet/"
 

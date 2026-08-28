@@ -237,7 +237,7 @@ class CommonTransferFragment : BaseTxFragment() {
                         BaseData.getAsset(fromChain.apiName, toSendDenom)
                     }
 
-                    transferImg.setTokenImg(toSendAsset?.image ?: "")
+                    transferImg.setTokenImg(toSendAsset!!)
                     sendTitle.text = getString(
                         R.string.title_asset_send, toSendAsset?.symbol
                     )
@@ -251,7 +251,7 @@ class CommonTransferFragment : BaseTxFragment() {
 
                 SendAssetType.ONLY_COSMOS_COIN -> {
                     toSendAsset = BaseData.getAsset(fromChain.apiName, toSendDenom)
-                    transferImg.setTokenImg(toSendAsset?.image ?: "")
+                    transferImg.setTokenImg(toSendAsset!!)
                     sendTitle.text = getString(
                         R.string.title_asset_send, toSendAsset?.symbol
                     )
@@ -288,7 +288,7 @@ class CommonTransferFragment : BaseTxFragment() {
                         }
                     }
 
-                    transferImg.setTokenImg(toSendToken?.image ?: "")
+                    transferImg.setTokenImg(toSendToken!!)
                     sendTitle.text = getString(
                         R.string.title_asset_send, toSendToken?.symbol
                     )
@@ -340,7 +340,7 @@ class CommonTransferFragment : BaseTxFragment() {
                         txViewModel.bitTxData(fromChain as ChainBitCoin86)
                         toSendAsset =
                             BaseData.getAsset(fromChain.apiName, fromChain.getMainAssetDenom())
-                        transferImg.setTokenImg(toSendAsset?.image ?: "")
+                        transferImg.setTokenImg(toSendAsset!!)
                         sendTitle.text = getString(
                             R.string.title_asset_send, fromChain.getMainAssetSymbol()
                         )
@@ -355,7 +355,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             }
                     }
 
-                    transferImg.setTokenImg(toSendToken?.image ?: "")
+                    transferImg.setTokenImg(toSendToken!!)
                     sendTitle.text = getString(
                         R.string.title_asset_send, toSendToken?.symbol
                     )
@@ -372,7 +372,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             withContext(Dispatchers.Main) {
                                 txViewModel.solanaMinimumRentBalance(this@apply, 0)
                                 toSendAsset = BaseData.getAsset(apiName, toSendDenom)
-                                transferImg.setTokenImg(toSendAsset?.image ?: "")
+                                transferImg.setTokenImg(toSendAsset!!)
                                 sendTitle.text = getString(
                                     R.string.title_asset_send, toSendAsset?.symbol
                                 )
@@ -391,7 +391,7 @@ class CommonTransferFragment : BaseTxFragment() {
                             withContext(Dispatchers.Main) {
                                 txViewModel.solanaMinimumRentBalance(this@apply, 165)
                                 toSendToken = BaseData.getToken(this@apply, apiName, toSendDenom)
-                                transferImg.setTokenImg(toSendToken?.image ?: "")
+                                transferImg.setTokenImg(toSendToken!!)
                                 sendTitle.text = getString(
                                     R.string.title_asset_send, toSendToken?.symbol
                                 )
@@ -402,14 +402,14 @@ class CommonTransferFragment : BaseTxFragment() {
 
                 SendAssetType.APTOS_COIN -> {
                     toSendAsset = BaseData.getAsset(fromChain.apiName, toSendDenom)
-                    transferImg.setTokenImg(toSendAsset?.image ?: "")
+                    transferImg.setTokenImg(toSendAsset!!)
                     sendTitle.text = getString(
                         R.string.title_asset_send, toSendAsset?.symbol
                     )
 
                     fromChain.aptosFetcher?.let { fetcher ->
                         toSendAsset = BaseData.getAsset(fromChain.apiName, toSendDenom)
-                        transferImg.setTokenImg(toSendAsset?.image ?: "")
+                        transferImg.setTokenImg(toSendAsset!!)
                         sendTitle.text = getString(
                             R.string.title_asset_send, toSendAsset?.symbol
                         )

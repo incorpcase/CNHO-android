@@ -46,7 +46,7 @@ class AssetSelectViewHolder(
                 )
             }
 
-            tokenImg.setTokenImg(asset.image ?: "")
+            tokenImg.setTokenImg(asset)
             tokenName.text = asset.symbol
 
             ibcBadge.visibleOrGone(asset.type == TargetAssetType.IBC)
