@@ -40,17 +40,41 @@ object BaseData {
     var appSchemeUrl = ""
 
     var cnhoPrice: Double = 1.0
+    var cnyPriceChange: Double = 0.0
     var cnhoPoolPrices: MutableMap<String, BigDecimal> = mutableMapOf()
+    var cnhoPoolPriceChanges: MutableMap<String, Double> = mutableMapOf()
 
     fun getPrice(coinGeckoId: String?, isUsd: Boolean? = false): BigDecimal {
         if (coinGeckoId == "cnho") {
             return cnhoPrice.toBigDecimal().setScale(12, RoundingMode.HALF_DOWN)
         }
+
+        var targetDenom: String? = null
         if (coinGeckoId?.startsWith("cnho:") == true) {
-            val denom = coinGeckoId.substringAfter("cnho:")
-            val poolPrice = cnhoPoolPrices[denom] ?: BigDecimal.ZERO
-            return (poolPrice * cnhoPrice.toBigDecimal()).setScale(12, RoundingMode.HALF_DOWN)
+            targetDenom = coinGeckoId.substringAfter("cnho:")
+        } else {
+            assets?.firstOrNull { it.coinGeckoId == coinGeckoId && it.chain == "cnho" }?.let {
+                targetDenom = it.denom
+            } ?: run {
+                if (coinGeckoId == "vndo" || coinGeckoId?.contains("vndo") == true) {
+                    targetDenom = "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo"
+                } else {
+                    // Fallback to treat coinGeckoId as a raw denom if it exists in cnhoPoolPrices
+                    if (cnhoPoolPrices.containsKey(coinGeckoId)) {
+                        targetDenom = coinGeckoId
+                    }
+                }
+            }
         }
+
+        if (targetDenom != null) {
+            cnhoPoolPrices[targetDenom]?.let { poolPrice ->
+                if (poolPrice > BigDecimal.ZERO) {
+                    return (poolPrice * cnhoPrice.toBigDecimal()).setScale(12, RoundingMode.HALF_DOWN)
+                }
+            }
+        }
+
         val price = if (isUsd == true) {
             usdPrices?.firstOrNull { it.coinGeckoId == coinGeckoId }
         } else {
@@ -64,10 +88,33 @@ object BaseData {
     }
 
     fun lastUpDown(coinGeckoId: String?): BigDecimal {
-        if (coinGeckoId == "cnho" || coinGeckoId?.contains("vndo") == true) {
-            return ((cnhoPrice - 1.0) / 1.0 * 100).toBigDecimal()
-                .setScale(2, RoundingMode.HALF_DOWN)
+        if (coinGeckoId == "cnho") {
+            return cnyPriceChange.toBigDecimal().setScale(2, RoundingMode.HALF_DOWN)
         }
+
+        var targetDenom: String? = null
+        if (coinGeckoId?.startsWith("cnho:") == true) {
+            targetDenom = coinGeckoId.substringAfter("cnho:")
+        } else {
+            assets?.firstOrNull { it.coinGeckoId == coinGeckoId && it.chain == "cnho" }?.let {
+                targetDenom = it.denom
+            } ?: run {
+                if (coinGeckoId == "vndo" || coinGeckoId?.contains("vndo") == true) {
+                    targetDenom = "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo"
+                } else {
+                    if (cnhoPoolPriceChanges.containsKey(coinGeckoId)) {
+                        targetDenom = coinGeckoId
+                    }
+                }
+            }
+        }
+
+        if (targetDenom != null) {
+            cnhoPoolPriceChanges[targetDenom]?.let { change ->
+                return change.toBigDecimal().setScale(2, RoundingMode.HALF_DOWN)
+            }
+        }
+
         val price = prices?.firstOrNull { it.coinGeckoId == coinGeckoId }
         if (price != null) {
             return (price.daily_price_change_in_percent ?: 0.0).toBigDecimal()

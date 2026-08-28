@@ -123,12 +123,12 @@ class CoinCosmosLineViewHolder(
                                 if (chain is ChainGnoTestnet) {
                                     formatAssetValue(
                                         chain.gnoRpcFetcher?.denomValue(coin.denom)
-                                            ?: BigDecimal.ZERO
+                                            ?: BigDecimal.ZERO, coinGeckoId = asset.coinGeckoId
                                     )
                                 } else {
                                     formatAssetValue(
                                         chain.cosmosFetcher?.denomValue(coin.denom)
-                                            ?: BigDecimal.ZERO
+                                            ?: BigDecimal.ZERO, coinGeckoId = asset.coinGeckoId
                                     )
                                 }
                             }

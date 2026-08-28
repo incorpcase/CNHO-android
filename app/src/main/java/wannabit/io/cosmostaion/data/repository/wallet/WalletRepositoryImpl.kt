@@ -1861,21 +1861,13 @@ class WalletRepositoryImpl : WalletRepository {
                 .withDeadlineAfter(duration, TimeUnit.SECONDS)
             val request = QuerySmartContractStateRequest.newBuilder().setAddress(contractAddress)
                 .setQueryData(queryData).build()
-            try {
-                val response = stub.smartContractState(request)
-                val json = JSONObject(response.data.toStringUtf8())
-                json.optString("amount")
-            } catch (e: Exception) {
-                null
-            }
+            val response = stub.smartContractState(request)
+            val json = JSONObject(response.data.toStringUtf8())
+            json.optString("amount")
         } else {
             val queryDataBase64 = Base64.toBase64String(queryData.toByteArray())
-            try {
-                val response = lcdApi(chain).lcdContractInfo(contractAddress, queryDataBase64)
-                response["data"].asJsonObject["amount"].asString
-            } catch (e: Exception) {
-                null
-            }
+            val response = lcdApi(chain).lcdContractInfo(contractAddress, queryDataBase64)
+            response["data"].asJsonObject["amount"].asString
         }
     }
 
@@ -1895,21 +1887,13 @@ class WalletRepositoryImpl : WalletRepository {
                 .withDeadlineAfter(duration, TimeUnit.SECONDS)
             val request = QuerySmartContractStateRequest.newBuilder().setAddress(contractAddress)
                 .setQueryData(queryData).build()
-            try {
-                val response = stub.smartContractState(request)
-                val json = JSONObject(response.data.toStringUtf8())
-                json.optString("return_amount")
-            } catch (e: Exception) {
-                null
-            }
+            val response = stub.smartContractState(request)
+            val json = JSONObject(response.data.toStringUtf8())
+            json.optString("return_amount")
         } else {
             val queryDataBase64 = Base64.toBase64String(queryData.toByteArray())
-            try {
-                val response = lcdApi(chain).lcdContractInfo(contractAddress, queryDataBase64)
-                response["data"].asJsonObject["return_amount"].asString
-            } catch (e: Exception) {
-                null
-            }
+            val response = lcdApi(chain).lcdContractInfo(contractAddress, queryDataBase64)
+            response["data"].asJsonObject["return_amount"].asString
         }
     }
 }

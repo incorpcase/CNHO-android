@@ -24,6 +24,7 @@ import org.web3j.protocol.http.HttpService
 import wannabit.io.cosmostaion.chain.BaseChain
 import wannabit.io.cosmostaion.chain.FetchState
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainBabylon
+import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainInitia
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainZenrock
 import wannabit.io.cosmostaion.chain.evmClass.ChainOktEvm
@@ -69,7 +70,7 @@ import wannabit.io.cosmostaion.database.model.Password
 import wannabit.io.cosmostaion.sign.BitcoinJs
 import xyz.mcxross.kaptos.model.Option
 import java.math.BigDecimal
-import java.time.Instant
+import java.math.RoundingMode
 import java.util.concurrent.TimeUnit
 
 class WalletViewModel(private val walletRepository: WalletRepository) : ViewModel() {
@@ -259,8 +260,45 @@ class WalletViewModel(private val walletRepository: WalletRepository) : ViewMode
         when (val response = walletRepository.price(currency)) {
             is NetworkResult.Success -> {
                 response.data.let { data ->
-                    BaseData.cnhoPrice = (9998..10010).random() / 10000.0
                     BaseData.prices = data
+                    BaseData.cnhoPrice = (9998..10010).random() / 10000.0
+                    BaseData.cnyPriceChange = (-10..10).random() / 100.0
+
+                    val cnhoAssets = BaseData.assets?.filter { it.chain == "cnho" && it.denom != "ucnho" }?.toMutableList() ?: mutableListOf()
+                    val vndoDenom = "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo"
+                    if (cnhoAssets.none { it.denom == vndoDenom }) {
+                        BaseData.getAsset("cnho", vndoDenom)?.let { cnhoAssets.add(it) }
+                    }
+
+                    val deferredResults = cnhoAssets.map { asset ->
+                        async {
+                            asset.denom?.let { denom ->
+                                val offerAmount = Math.pow(10.0, (asset.decimals ?: 6).toDouble()).toLong().toString()
+                                val result = if (denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {
+                                    walletRepository.simulateVndoPrice(
+                                        null, ChainCnho(), ChainCnho.DEX_PAIR, offerAmount, denom
+                                    )
+                                } else {
+                                    walletRepository.simulateSwap(
+                                        null, ChainCnho(), ChainCnho.DEX_ROUTER, offerAmount, denom, "ucnho"
+                                    )
+                                }
+                                BaseData.cnhoPoolPriceChanges[denom] = (-10..10).random() / 100.0
+                                Pair(denom, result)
+                            }
+                        }
+                    }
+                    deferredResults.awaitAll().forEach { pair ->
+                        pair?.let { (denom, result) ->
+                            if (result is NetworkResult.Success) {
+                                result.data?.let { amount ->
+                                    val price = amount.toBigDecimal().divide(BigDecimal.valueOf(Math.pow(10.0, ChainCnho.DISPLAY_DECIMALS.toDouble())), 12, RoundingMode.HALF_DOWN)
+                                    BaseData.cnhoPoolPrices[denom] = price
+                                }
+                            }
+                        }
+                    }
+
                     BaseData.setLastPriceTime()
                     BaseData.baseAccount?.updateAllValue()
                     updatePriceResult.postValue(currency)

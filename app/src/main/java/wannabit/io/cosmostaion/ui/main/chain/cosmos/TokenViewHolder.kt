@@ -52,12 +52,12 @@ class TokenViewHolder(
                         if (chain.isSupportCw20()) {
                             chain.cosmosFetcher?.let {
                                 coinAmountValue.text =
-                                    formatAssetValue(it.tokenValue(token.address))
+                                    formatAssetValue(it.tokenValue(token.address), coinGeckoId = token.coinGeckoId)
                             }
                         } else {
                             chain.evmRpcFetcher?.let {
                                 coinAmountValue.text =
-                                    formatAssetValue(it.tokenValue(token.address))
+                                    formatAssetValue(it.tokenValue(token.address), coinGeckoId = token.coinGeckoId)
                             }
                         }
                     }
@@ -69,7 +69,7 @@ class TokenViewHolder(
                         tokenImg.clipToOutline = true
                         tokenName.text = evmToken.symbol
 
-                        tokenPrice.text = formatAssetValue(BaseData.getPrice(evmToken.coinGeckoId))
+                        tokenPrice.text = formatAssetValue(BaseData.getPrice(evmToken.coinGeckoId), coinGeckoId = evmToken.coinGeckoId)
                         BaseData.lastUpDown(evmToken.coinGeckoId).let { lastUpDown ->
                             tokenPriceChange.priceChangeStatusColor(lastUpDown)
                             tokenPriceChange.text = priceChangeStatus(lastUpDown)
@@ -92,12 +92,12 @@ class TokenViewHolder(
                             if (chain.isSupportCw20()) {
                                 chain.cosmosFetcher?.let {
                                     coinAmountValue.text =
-                                        formatAssetValue(it.tokenValue(evmToken.address))
+                                        formatAssetValue(it.tokenValue(evmToken.address), coinGeckoId = evmToken.coinGeckoId)
                                 }
                             } else {
                                 chain.evmRpcFetcher?.let {
                                     coinAmountValue.text =
-                                        formatAssetValue(it.tokenValue(evmToken.address))
+                                        formatAssetValue(it.tokenValue(evmToken.address), coinGeckoId = evmToken.coinGeckoId)
                                 }
                             }
                         }
@@ -110,7 +110,7 @@ class TokenViewHolder(
                             tokenName.text = grcToken.symbol
 
                             tokenPrice.text =
-                                formatAssetValue(BaseData.getPrice(grcToken.coinGeckoId))
+                                formatAssetValue(BaseData.getPrice(grcToken.coinGeckoId), coinGeckoId = grcToken.coinGeckoId)
                             BaseData.lastUpDown(grcToken.coinGeckoId).let { lastUpDown ->
                                 tokenPriceChange.priceChangeStatusColor(lastUpDown)
                                 tokenPriceChange.text = priceChangeStatus(lastUpDown)
@@ -132,7 +132,7 @@ class TokenViewHolder(
                                 coinAmount.text = formatAmount(dpAmount.toPlainString(), 6)
                                 chain.gnoRpcFetcher?.let {
                                     coinAmountValue.text =
-                                        formatAssetValue(it.grc20TokenValue(grcToken.address))
+                                        formatAssetValue(it.grc20TokenValue(grcToken.address), coinGeckoId = grcToken.coinGeckoId)
                                 }
                             }
                         }

@@ -61,10 +61,10 @@ class CoinViewHolder(
                     coinAmount.text = formatAmount(amount.toPlainString(), 6)
                     coinAmountValue.text = if (chain is ChainGnoTestnet) {
                         chain.gnoRpcFetcher?.denomValue(coin.denom)
-                            ?.let { formatAssetValue(it) }
+                            ?.let { formatAssetValue(it, coinGeckoId = asset.coinGeckoId) }
                     } else {
                         chain.cosmosFetcher?.denomValue(coin.denom)
-                            ?.let { formatAssetValue(it) }
+                            ?.let { formatAssetValue(it, coinGeckoId = asset.coinGeckoId) }
                     }
                 }
             }

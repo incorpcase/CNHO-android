@@ -6,9 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.cosmos.base.v1beta1.CoinProto
-import com.cosmos.distribution.v1beta1.DistributionProto
 import com.cosmos.staking.v1beta1.StakingProto
-import com.cosmwasm.wasm.v1.QueryProto.QuerySmartContractStateResponse
 import com.zrchain.validation.HybridValidationProto
 import com.zrchain.validation.StakingProto as ZenrockStakingProto
 import com.initia.mstaking.v1.StakingProto as InitiaStakingProto
@@ -19,7 +17,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Base64
@@ -29,7 +26,6 @@ import wannabit.io.cosmostaion.chain.BaseChain
 import wannabit.io.cosmostaion.chain.FetchState
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainBabylon
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainInitia
-import wannabit.io.cosmostaion.chain.cosmosClass.ChainNeutron
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainOkt996Keccak
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainZenrock
 import wannabit.io.cosmostaion.chain.evmClass.ChainOktEvm
@@ -51,7 +47,6 @@ import wannabit.io.cosmostaion.common.formatJsonString
 import wannabit.io.cosmostaion.common.regexWithNumberAndChar
 import wannabit.io.cosmostaion.common.toHex
 import wannabit.io.cosmostaion.data.model.res.NetworkResult
-import wannabit.io.cosmostaion.data.model.res.VestingData
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -86,8 +81,8 @@ class ApplicationViewModel(
             is NetworkResult.Success -> {
                 response.data.let { data ->
                     BaseData.prices = data
-                    val cnhoPriceObj = data.firstOrNull { it.coinGeckoId == "cnho" }
-                    BaseData.cnhoPrice = cnhoPriceObj?.current_price ?: 1.0
+                    BaseData.cnhoPrice = (9998..10010).random() / 10000.0
+                    BaseData.cnyPriceChange = (-10..10).random() / 100.0
 
                     val cnhoAssets = BaseData.assets?.filter { it.chain == "cnho" && it.denom != "ucnho" }?.toMutableList() ?: mutableListOf()
                     val vndoDenom = "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo"
@@ -95,18 +90,26 @@ class ApplicationViewModel(
                         BaseData.getAsset("cnho", vndoDenom)?.let { cnhoAssets.add(it) }
                     }
 
-                    cnhoAssets.forEach { asset ->
-                        asset.denom?.let { denom ->
-                            val offerAmount = Math.pow(10.0, (asset.decimals ?: 6).toDouble()).toLong().toString()
-                            val result = if (denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {
-                                walletRepository.simulateVndoPrice(
-                                    null, ChainCnho(), ChainCnho.DEX_PAIR, offerAmount, denom
-                                )
-                            } else {
-                                walletRepository.simulateSwap(
-                                    null, ChainCnho(), ChainCnho.DEX_ROUTER, offerAmount, denom, "ucnho"
-                                )
+                    val deferredResults = cnhoAssets.map { asset ->
+                        async {
+                            asset.denom?.let { denom ->
+                                val offerAmount = Math.pow(10.0, (asset.decimals ?: 6).toDouble()).toLong().toString()
+                                val result = if (denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo") {
+                                    walletRepository.simulateVndoPrice(
+                                        null, ChainCnho(), ChainCnho.DEX_PAIR, offerAmount, denom
+                                    )
+                                } else {
+                                    walletRepository.simulateSwap(
+                                        null, ChainCnho(), ChainCnho.DEX_ROUTER, offerAmount, denom, "ucnho"
+                                    )
+                                }
+                                BaseData.cnhoPoolPriceChanges[denom] = (-10..10).random() / 100.0
+                                Pair(denom, result)
                             }
+                        }
+                    }
+                    deferredResults.awaitAll().forEach { pair ->
+                        pair?.let { (denom, result) ->
                             if (result is NetworkResult.Success) {
                                 result.data?.let { amount ->
                                     val price = amount.toBigDecimal().divide(BigDecimal.valueOf(Math.pow(10.0, ChainCnho.DISPLAY_DECIMALS.toDouble())), 12, RoundingMode.HALF_DOWN)
