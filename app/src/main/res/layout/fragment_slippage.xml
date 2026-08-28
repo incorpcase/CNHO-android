@@ -39,12 +39,132 @@
         app:layout_constraintTop_toBottomOf="@+id/title" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/slippage005"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view">
+
+        <TextView
+            style="@style/font_sb_14"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="@dimen/space_15"
+            android:layout_marginStart="@dimen/space_20"
+            android:text="0.05%"
+            android:textColor="@color/color_base01"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/slippage005_select_img"
+            android:layout_width="@dimen/space_16"
+            android:layout_height="@dimen/space_16"
+            android:layout_marginEnd="@dimen/space_20"
+            android:src="@drawable/icon_check"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/view005"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/space_1"
+        android:layout_marginHorizontal="@dimen/space_12"
+        android:background="@color/color_base07"
+        app:layout_constraintTop_toBottomOf="@+id/slippage005" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/slippage01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view005">
+
+        <TextView
+            style="@style/font_sb_14"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="@dimen/space_15"
+            android:layout_marginStart="@dimen/space_20"
+            android:text="0.1%"
+            android:textColor="@color/color_base01"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/slippage01_select_img"
+            android:layout_width="@dimen/space_16"
+            android:layout_height="@dimen/space_16"
+            android:layout_marginEnd="@dimen/space_20"
+            android:src="@drawable/icon_check"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/view01"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/space_1"
+        android:layout_marginHorizontal="@dimen/space_12"
+        android:background="@color/color_base07"
+        app:layout_constraintTop_toBottomOf="@+id/slippage01" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/slippage05"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view01">
+
+        <TextView
+            style="@style/font_sb_14"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="@dimen/space_15"
+            android:layout_marginStart="@dimen/space_20"
+            android:text="0.5%"
+            android:textColor="@color/color_base01"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/slippage05_select_img"
+            android:layout_width="@dimen/space_16"
+            android:layout_height="@dimen/space_16"
+            android:layout_marginEnd="@dimen/space_20"
+            android:src="@drawable/icon_check"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/view05"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/space_1"
+        android:layout_marginHorizontal="@dimen/space_12"
+        android:background="@color/color_base07"
+        app:layout_constraintTop_toBottomOf="@+id/slippage05" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/slippage1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view">
+        app:layout_constraintTop_toBottomOf="@+id/view05">
 
         <TextView
             style="@style/font_sb_14"

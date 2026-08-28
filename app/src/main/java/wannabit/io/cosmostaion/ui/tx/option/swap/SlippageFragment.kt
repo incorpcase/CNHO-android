@@ -9,7 +9,7 @@ import wannabit.io.cosmostaion.common.visibleOrGone
 import wannabit.io.cosmostaion.databinding.FragmentSlippageBinding
 
 interface SlippageListener {
-    fun slippage(position: Int)
+    fun slippage(slippage: String)
 }
 
 class SlippageFragment : BottomSheetDialogFragment() {
@@ -17,7 +17,7 @@ class SlippageFragment : BottomSheetDialogFragment() {
     private var _binding: FragmentSlippageBinding? = null
     private val binding get() = _binding!!
 
-    private var skipSlippage = "1"
+    private var skipSlippage = "0.1"
 
     companion object {
         @JvmStatic
@@ -53,6 +53,9 @@ class SlippageFragment : BottomSheetDialogFragment() {
     private fun initView() {
         arguments?.getString("skipSlippage")?.let { skipSlippage = it }
         binding.apply {
+            slippage005SelectImg.visibleOrGone(skipSlippage == "0.05")
+            slippage01SelectImg.visibleOrGone(skipSlippage == "0.1")
+            slippage05SelectImg.visibleOrGone(skipSlippage == "0.5")
             slippage1SelectImg.visibleOrGone(skipSlippage == "1")
             slippage3SelectImg.visibleOrGone(skipSlippage == "3")
             slippage5SelectImg.visibleOrGone(skipSlippage == "5")
@@ -61,18 +64,33 @@ class SlippageFragment : BottomSheetDialogFragment() {
 
     private fun setUpClickAction() {
         binding.apply {
+            slippage005.setOnClickListener {
+                slippageListener?.slippage("0.05")
+                dismiss()
+            }
+            
+            slippage01.setOnClickListener {
+                slippageListener?.slippage("0.1")
+                dismiss()
+            }
+            
+            slippage05.setOnClickListener {
+                slippageListener?.slippage("0.5")
+                dismiss()
+            }
+
             slippage1.setOnClickListener {
-                slippageListener?.slippage(1)
+                slippageListener?.slippage("1")
                 dismiss()
             }
 
             slippage3.setOnClickListener {
-                slippageListener?.slippage(3)
+                slippageListener?.slippage("3")
                 dismiss()
             }
 
             slippage5.setOnClickListener {
-                slippageListener?.slippage(5)
+                slippageListener?.slippage("5")
                 dismiss()
             }
         }

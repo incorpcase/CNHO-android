@@ -175,14 +175,7 @@
                                     app:layout_constraintStart_toEndOf="@+id/input_chain_img"
                                     app:layout_constraintTop_toTopOf="parent" />
 
-                                <ImageView
-                                    android:layout_width="@dimen/space_18"
-                                    android:layout_height="@dimen/space_18"
-                                    android:src="@drawable/icon_down"
-                                    app:layout_constraintBottom_toBottomOf="parent"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintTop_toTopOf="parent"
-                                    app:tint="@color/color_base02" />
+
 
                             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -222,6 +215,7 @@
                                     app:layout_constraintTop_toTopOf="parent" />
 
                                 <ImageView
+                                    android:id="@+id/input_token_arrow"
                                     android:layout_width="@dimen/space_18"
                                     android:layout_height="@dimen/space_18"
                                     android:src="@drawable/icon_down"
@@ -465,14 +459,7 @@
                                     app:layout_constraintStart_toEndOf="@+id/output_chain_img"
                                     app:layout_constraintTop_toTopOf="parent" />
 
-                                <ImageView
-                                    android:layout_width="@dimen/space_18"
-                                    android:layout_height="@dimen/space_18"
-                                    android:src="@drawable/icon_down"
-                                    app:layout_constraintBottom_toBottomOf="parent"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintTop_toTopOf="parent"
-                                    app:tint="@color/color_base02" />
+
 
                             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -512,6 +499,7 @@
                                     app:layout_constraintTop_toTopOf="parent" />
 
                                 <ImageView
+                                    android:id="@+id/output_token_arrow"
                                     android:layout_width="@dimen/space_18"
                                     android:layout_height="@dimen/space_18"
                                     android:src="@drawable/icon_down"
@@ -531,6 +519,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/space_16"
                             android:layout_marginTop="@dimen/space_16"
+                            android:text="0"
                             android:textColor="@color/color_base01"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@+id/output_select_layout" />
@@ -551,6 +540,7 @@
                                 style="@style/font_sb_12"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:text="0"
                                 android:textColor="@color/color_base02"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent" />

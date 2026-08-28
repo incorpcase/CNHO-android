@@ -63,7 +63,7 @@ class AssetSelectViewHolder(
                         dpAmount.multiply(price).setScale(asset.decimals ?: 6, RoundingMode.DOWN)
 
                     tokenBalance.text = formatAmount(dpAmount.toPlainString(), asset.decimals ?: 6)
-                    tokenValue.text = formatAssetValue(value)
+                    tokenValue.text = formatAssetValue(value, coinGeckoId = asset.coinGeckoId)
                 }
 
             } ?: run {

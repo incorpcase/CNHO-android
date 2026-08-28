@@ -18,13 +18,14 @@
         android:id="@+id/token_img"
         android:layout_width="@dimen/space_40"
         android:layout_height="@dimen/space_40"
-        android:layout_marginVertical="@dimen/space_15"
+        android:layout_marginVertical="@dimen/space_18"
         android:layout_marginStart="@dimen/space_20"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/token_info_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/space_12"
@@ -95,5 +96,13 @@
             app:layout_constraintTop_toBottomOf="@+id/token_balance" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/space_1"
+        android:layout_marginHorizontal="@dimen/space_12"
+        android:background="@color/color_base07"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

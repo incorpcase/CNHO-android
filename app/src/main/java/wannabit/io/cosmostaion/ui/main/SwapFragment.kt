@@ -72,7 +72,7 @@ class SwapFragment : Fragment() {
     private var outputAsset: Asset? = null
     private var inputAmount: String = ""
     private var swapOutputAmount: String = ""
-    private var swapSlippage = "1"
+    private var swapSlippage = "0.1"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -204,8 +204,8 @@ class SwapFragment : Fragment() {
     private fun updateSwapView() {
         binding.apply {
             if (swapOutputAmount.isEmpty()) {
-                outputAmount.text = ""
-                outputAmountValue.text = ""
+                outputAmount.text = "0"
+                outputAmountValue.text = formatAssetValue(BigDecimal.ZERO, coinGeckoId = "cnho")
                 feeView.visibility = View.GONE
                 btnSwap.updateButtonView(false)
             } else {
@@ -217,7 +217,6 @@ class SwapFragment : Fragment() {
                 outputAmountValue.text = formatAssetValue(value, coinGeckoId = outputAsset?.coinGeckoId)
                 
                 feeView.visibility = View.VISIBLE
-                btnSwap.updateButtonView(true)
                 
                 // Exchange rate
                 inputRateAmount.text = "1"
@@ -235,12 +234,22 @@ class SwapFragment : Fragment() {
                 txFeeAmount.text = formatAmount("0.01", 6)
                 txFeeDenom.text = "CNHO"
                 swapVenue.text = "CNHO Swap"
+
+                val available = cnhoChain.cosmosFetcher()?.balanceAmount(inputAsset?.denom ?: "") ?: BigDecimal.ZERO
+                val inputAmountBigDecimal = inputAmountDecimal?.movePointRight(inputAsset?.decimals ?: 6) ?: BigDecimal.ZERO
+                if (inputAmountBigDecimal > available) {
+                    btnSwap.updateButtonView(false)
+                    invalidMsg.visibility = View.VISIBLE
+                } else {
+                    btnSwap.updateButtonView(true)
+                    invalidMsg.visibility = View.INVISIBLE
+                }
             }
             
             val inputPrice = BaseData.getPrice(inputAsset?.coinGeckoId)
             val inputAmountDecimal = inputAmount.toBigDecimalOrNull()
             val inputValue = if (inputAmountDecimal == null) BigDecimal.ZERO else inputAmountDecimal.multiply(inputPrice)
-            inputAmountValue.text = formatAssetValue(inputValue, coinGeckoId = inputAsset?.coinGeckoId)
+            inputAmountValue.text = formatAssetValue(inputValue, coinGeckoId = "cnho")
         }
     }
 
@@ -299,10 +308,17 @@ class SwapFragment : Fragment() {
     private fun setUpClickAction() {
         binding.apply {
             inputTokenLayout.setOnClickListener {
-                val swapAssets = BaseData.assets?.filter { it.chain == cnhoChain.apiName }?.map { 
+                val swapAssets = BaseData.assets?.filter { it.chain == cnhoChain.apiName }?.map {
                     it.toTargetAsset()
                 }?.toMutableList() ?: mutableListOf()
-                
+
+                if (swapAssets.none { it.denom == "ucnho" }) {
+                    swapAssets.add(0, TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/cnho.png", "CNHO", "ucnho", TargetAssetType.NATIVE, "CNHO Stables", 6))
+                }
+                if (swapAssets.none { it.denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo" }) {
+                    swapAssets.add(TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/vndo.png", "VNDO", "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo", TargetAssetType.NATIVE, "VNDO Stablecoin", 6))
+                }
+
                 if (parentFragmentManager.findFragmentByTag(AssetSelectFragment::class.java.name) != null) return@setOnClickListener
                 
                 val selectFragment = AssetSelectFragment.newInstance(cnhoChain, inputAsset?.toTargetAsset(), swapAssets, cnhoChain.cosmosFetcher?.cosmosBalances, AssetSelectType.SWAP_INPUT, object : AssetListener {
@@ -318,9 +334,16 @@ class SwapFragment : Fragment() {
             }
 
             outputTokenLayout.setOnClickListener {
-                val swapAssets = BaseData.assets?.filter { it.chain == cnhoChain.apiName }?.map { 
+                val swapAssets = BaseData.assets?.filter { it.chain == cnhoChain.apiName }?.map {
                     it.toTargetAsset()
                 }?.toMutableList() ?: mutableListOf()
+
+                if (swapAssets.none { it.denom == "ucnho" }) {
+                    swapAssets.add(0, TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/cnho.png", "CNHO", "ucnho", TargetAssetType.NATIVE, "CNHO Stables", 6))
+                }
+                if (swapAssets.none { it.denom == "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo" }) {
+                    swapAssets.add(TargetAsset("https://raw.githubusercontent.com/cosmostation/chainlist/main/chain/cnho/asset/vndo.png", "VNDO", "factory/cnho18x42dnqv4z2mxdw6pq5p4h5aj49vnqytq6k0h4/vndo", TargetAssetType.NATIVE, "VNDO Stablecoin", 6))
+                }
 
                 if (parentFragmentManager.findFragmentByTag(AssetSelectFragment::class.java.name) != null) return@setOnClickListener
 
@@ -345,8 +368,8 @@ class SwapFragment : Fragment() {
 
             btnSlippage.setOnClickListener {
                 val slippageFragment = SlippageFragment.newInstance(swapSlippage, object : SlippageListener {
-                    override fun slippage(position: Int) {
-                        swapSlippage = position.toString()
+                    override fun slippage(slippage: String) {
+                        swapSlippage = slippage
                         binding.slippage.text = "$swapSlippage%"
                     }
                 })
@@ -454,6 +477,7 @@ class SwapFragment : Fragment() {
                     } else {
                         putExtra("isSuccess", true)
                         binding.inputAmountTxt.setText("")
+                        applicationViewModel.loadChainData(cnhoChain, BaseData.baseAccount?.id ?: -1L, isRefresh = true)
                     }
                     putExtra("errorMsg", txResponse.rawLog)
                     putExtra("selectedChain", cnhoChain.tag)

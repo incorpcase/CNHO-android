@@ -161,7 +161,8 @@ class DashboardViewHolder(
                         chainValue.text = "✱✱✱✱"
                         chainValue.textSize = 10f
                     } else {
-                        chainValue.text = formatAssetValue(chain.allValue(false) ?: BigDecimal.ZERO)
+                        val mainAsset = BaseData.getAsset(chain.apiName, chain.getMainAssetDenom())
+                        chainValue.text = formatAssetValue(chain.allValue(false) ?: BigDecimal.ZERO, coinGeckoId = mainAsset?.coinGeckoId ?: "")
                         chainValue.textSize = 14f
                     }
 
@@ -302,7 +303,8 @@ class DashboardViewHolder(
                         chainValue.text = "✱✱✱✱"
                         chainValue.textSize = 10f
                     } else {
-                        chainValue.text = formatAssetValue(chain.allValue(false) ?: BigDecimal.ZERO)
+                        val mainAsset = BaseData.getAsset(chain.apiName, chain.getMainAssetDenom())
+                        chainValue.text = formatAssetValue(chain.allValue(false) ?: BigDecimal.ZERO, coinGeckoId = mainAsset?.coinGeckoId ?: "")
                         chainValue.textSize = 14f
                     }
 
