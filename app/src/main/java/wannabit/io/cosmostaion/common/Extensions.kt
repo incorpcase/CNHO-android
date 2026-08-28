@@ -62,6 +62,7 @@ import org.json.JSONObject
 import wannabit.io.cosmostaion.R
 import wannabit.io.cosmostaion.chain.BaseChain
 import wannabit.io.cosmostaion.chain.PubKeyType
+import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainInitia
 import wannabit.io.cosmostaion.chain.cosmosClass.ChainZenrock
 import wannabit.io.cosmostaion.common.BaseConstant.CONSTANT_D
@@ -237,6 +238,10 @@ fun FragmentActivity.toMoveFragment(
 }
 
 fun ImageView.setChainLogo(chain: BaseChain) {
+    if (chain is ChainCnho) {
+        setImageResource(R.drawable.chain_cnho)
+        return
+    }
     Glide.with(context).load(chain.chainLogo()).diskCacheStrategy(
         DiskCacheStrategy.ALL
     ).placeholder(R.drawable.chain_default).error(R.drawable.chain_default)

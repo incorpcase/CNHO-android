@@ -20,6 +20,7 @@ import wannabit.io.cosmostaion.chain.cosmosClass.ChainCnho
 import wannabit.io.cosmostaion.common.BaseData
 import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.formatAssetValue
+import wannabit.io.cosmostaion.common.setChainLogo
 import wannabit.io.cosmostaion.common.setTokenImg
 import wannabit.io.cosmostaion.common.updateButtonView
 import wannabit.io.cosmostaion.data.model.res.Asset
@@ -140,9 +141,9 @@ class SwapFragment : Fragment() {
             loading.visibility = View.GONE
             swapLayout.visibility = View.VISIBLE
 
-            inputChainImg.setImageResource(R.drawable.chain_default)
+            inputChainImg.setChainLogo(cnhoChain)
             inputChainName.text = cnhoChain.name.uppercase()
-            outputChainImg.setImageResource(R.drawable.chain_default)
+            outputChainImg.setChainLogo(cnhoChain)
             outputChainName.text = cnhoChain.name.uppercase()
 
             fromAddress.text = cnhoChain.address
