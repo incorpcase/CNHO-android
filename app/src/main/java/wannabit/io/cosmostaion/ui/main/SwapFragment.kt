@@ -254,6 +254,11 @@ class SwapFragment : Fragment() {
     }
 
     private fun setUpObservers() {
+        applicationViewModel.currentAccountResult.observe(viewLifecycleOwner) {
+            initData()
+            initView()
+        }
+
         applicationViewModel.fetchedResult.observe(viewLifecycleOwner) { tag ->
             if (tag == cnhoChain.tag) {
                 updateAssetsView()
