@@ -184,7 +184,7 @@
     <string name="str_next_epoch">Activate Next epoch</string>
     <string name="str_next_reward_distribution">Next reward</string>
     <string name="str_instant">Instant</string>
-    <string name="str_endpoint_reset">Reset End-Point</string>
+    <string name="str_endpoint_reset">Reset</string>
     <string name="str_legacy" translatable="false">Legacy</string>
     <string name="str_nested_segwit" translatable="false">NESTED SEGWIT</string>
     <string name="str_native_segwit" translatable="false">NATIVE SEGWIT</string>
@@ -235,6 +235,8 @@
     <string name="title_address_book">Add Address Book</string>
     <string name="title_address_book_edit">Edit Address Book</string>
     <string name="title_general">General</string>
+    <string name="title_network">Network</string>
+    <string name="title_cnho_endpoint">CNHO Stables</string>
     <string name="title_language">Language</string>
     <string name="title_theme">Theme</string>
     <string name="title_currency">Currency</string>

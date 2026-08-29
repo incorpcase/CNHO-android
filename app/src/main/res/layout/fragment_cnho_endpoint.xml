@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="@dimen/space_20"
+    android:theme="@style/Theme.MaterialComponents.Light.NoActionBar">
+
+    <View
+        android:id="@+id/top_view"
+        android:layout_width="@dimen/space_40"
+        android:layout_height="@dimen/space_4"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/space_20"
+        android:background="@drawable/round_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/font_sb_16"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_20"
+        android:layout_marginTop="@dimen/space_16"
+        android:text="@string/title_cnho_endpoint"
+        android:textColor="@color/color_base01"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top_view" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/lcd_edit_layout"
+        style="@style/TextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_16"
+        app:endIconDrawable="@drawable/icon_clear"
+        app:endIconMode="clear_text"
+        app:endIconTint="@color/color_base01"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/lcd_endpoint"
+            style="@style/InputEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="LCD Endpoint"
+            android:inputType="textUri"
+            android:lines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/rpc_edit_layout"
+        style="@style/TextInputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_12"
+        app:endIconDrawable="@drawable/icon_clear"
+        app:endIconMode="clear_text"
+        app:endIconTint="@color/color_base01"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lcd_edit_layout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/rpc_endpoint"
+            style="@style/InputEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="RPC Endpoint"
+            android:inputType="textUri"
+            android:lines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/space_16"
+        android:layout_marginTop="@dimen/space_24"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rpc_edit_layout">
+
+        <Button
+            android:id="@+id/btn_reset"
+            style="@style/font_sb_16"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/space_54"
+            android:layout_marginEnd="@dimen/space_4"
+            android:layout_weight="1"
+            android:background="@drawable/button_disable_bg"
+            android:text="@string/str_endpoint_reset"
+            android:textAllCaps="false"
+            android:textColor="@color/color_base01" />
+
+        <Button
+            android:id="@+id/btn_confirm"
+            style="@style/font_sb_16"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/space_54"
+            android:layout_marginStart="@dimen/space_4"
+            android:layout_weight="1"
+            android:background="@drawable/button_common_bg"
+            android:text="@string/str_confirm"
+            android:textAllCaps="false"
+            android:textColor="@color/color_base01" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

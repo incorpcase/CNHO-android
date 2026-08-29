@@ -163,6 +163,8 @@
     <string name="title_address_book">주소록 추가</string>
     <string name="title_address_book_edit">주소록 편집</string>
     <string name="title_general">일반</string>
+    <string name="title_network">네트워크</string>
+    <string name="title_cnho_endpoint">CNHO Stables</string>
     <string name="title_language">언어</string>
     <string name="title_theme">테마</string>
     <string name="title_currency">통화</string>

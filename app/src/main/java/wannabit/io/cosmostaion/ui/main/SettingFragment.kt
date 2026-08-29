@@ -47,6 +47,7 @@ import wannabit.io.cosmostaion.ui.main.setting.SettingBottomFragment
 import wannabit.io.cosmostaion.ui.main.setting.ThemeFragment
 import wannabit.io.cosmostaion.ui.main.setting.general.DevDialogActivity
 import wannabit.io.cosmostaion.ui.main.setting.general.PushManager
+import wannabit.io.cosmostaion.ui.main.setting.CnhoEndpointFragment
 import wannabit.io.cosmostaion.ui.main.setting.wallet.account.AccountActivity
 import wannabit.io.cosmostaion.ui.main.setting.wallet.book.AddressBookListActivity
 import wannabit.io.cosmostaion.ui.main.setting.wallet.chain.ChainActivity
@@ -95,6 +96,7 @@ class SettingFragment : Fragment() {
                 alarmView,
                 appLockView,
                 bioView,
+                cnhoNetworkView,
                 helpView,
                 noticeView,
                 termView,
@@ -210,6 +212,12 @@ class SettingFragment : Fragment() {
 //                    currency.text = BaseData.currencyName()
 //                    walletViewModel.price(BaseData.currencyName(), true)
 //                }
+            }
+
+            cnhoNetworkView.setOnClickListener {
+                handleOneClickWithDelay(
+                    CnhoEndpointFragment.newInstance()
+                )
             }
 
             helpView.setOnClickListener {
