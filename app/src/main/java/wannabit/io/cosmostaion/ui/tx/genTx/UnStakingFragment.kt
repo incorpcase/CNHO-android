@@ -33,7 +33,7 @@ import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.formatAssetValue
 import wannabit.io.cosmostaion.common.getdAmount
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.common.setTokenImg
 import wannabit.io.cosmostaion.common.showToast
 import wannabit.io.cosmostaion.common.updateButtonView
@@ -246,7 +246,7 @@ class UnStakingFragment : BaseTxFragment() {
         binding.apply {
             BaseData.getAsset(selectedChain.apiName, selectedChain.getStakeAssetDenom())?.let { asset ->
                 validator?.let { validator ->
-                    monikerImg.setMonikerImg(selectedChain, validator.operatorAddress)
+                    monikerImg.setValidatorImg(selectedChain, validator)
                     monikerName.text = validator.description?.moniker?.trim()
 
                     val statusImage = when {
@@ -265,7 +265,7 @@ class UnStakingFragment : BaseTxFragment() {
                 }
 
                 initiaValidator?.let { validator ->
-                    monikerImg.setMonikerImg(selectedChain, validator.operatorAddress)
+                    monikerImg.setValidatorImg(selectedChain as ChainInitia, validator)
                     monikerName.text = validator.description?.moniker?.trim()
 
                     val statusImage = when {
@@ -284,7 +284,7 @@ class UnStakingFragment : BaseTxFragment() {
                 }
 
                 zenrockValidator?.let { validator ->
-                    monikerImg.setMonikerImg(selectedChain, validator.operatorAddress)
+                    monikerImg.setValidatorImg(selectedChain as ChainZenrock, validator)
                     monikerName.text = validator.description?.moniker?.trim()
 
                     val statusImage = when {

@@ -30,7 +30,7 @@ import wannabit.io.cosmostaion.common.formatAssetValue
 import wannabit.io.cosmostaion.common.formatString
 import wannabit.io.cosmostaion.common.getdAmount
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.common.setTokenImg
 import wannabit.io.cosmostaion.common.showToast
 import wannabit.io.cosmostaion.common.updateButtonView
@@ -148,7 +148,7 @@ class ContractCompoundingFragment : BaseTxFragment() {
     private fun updateValidatorView() {
         binding.apply {
             toValidator?.let { validator ->
-                monikerImg.setMonikerImg(selectedChain, validator.operatorAddress)
+                monikerImg.setValidatorImg(selectedChain, validator)
                 monikerName.text = validator.description?.moniker?.trim()
 
                 val statusImage = when {

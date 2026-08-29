@@ -13,7 +13,7 @@ import wannabit.io.cosmostaion.common.dpTimeNotSecond
 import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.gapTime
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.databinding.ItemBabylonUnstakingBinding
 import wannabit.io.cosmostaion.ui.tx.info.UnBondingEntry
 
@@ -36,7 +36,7 @@ class BabylonUnStakingViewHolder(
 //                listener.selectUnStakingAction(entry)
 //            }
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             val statusImage = when {
                 validator.jailed -> R.drawable.icon_jailed

@@ -48,6 +48,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import wannabit.io.cosmostaion.data.api.RetrofitInstance
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -333,6 +335,44 @@ fun ImageView.setMonikerImg(chain: BaseChain, opAddress: String?) {
         Picasso.get().load(chain.monikerImg(opAddress)).error(R.drawable.icon_default_vaildator)
             .into(this)
     }
+}
+
+fun ImageView.setValidatorImg(chain: BaseChain, validator: StakingProto.Validator) {
+    if (chain.apiName == "cnho" && validator.description?.identity?.isNotEmpty() == true) {
+        val identity = validator.description.identity
+        if (BaseData.keybaseAvatars.containsKey(identity)) {
+            Picasso.get().load(BaseData.keybaseAvatars[identity])
+                .error(R.drawable.icon_default_vaildator).into(this)
+        } else {
+            this.setImageResource(R.drawable.icon_default_vaildator)
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val response = RetrofitInstance.keybaseApi.getValidatorInfo(identity)
+                    if (response.isSuccessful) {
+                        response.body()?.getAsJsonArray("them")?.firstOrNull()?.asJsonObject?.getAsJsonObject("pictures")
+                            ?.getAsJsonObject("primary")?.get("url")?.asString?.let { url ->
+                                BaseData.keybaseAvatars[identity] = url
+                                withContext(Dispatchers.Main) {
+                                    Picasso.get().load(url).error(R.drawable.icon_default_vaildator)
+                                        .into(this@setValidatorImg)
+                                }
+                            }
+                    }
+                } catch (_: Exception) {
+                }
+            }
+        }
+    } else {
+        setMonikerImg(chain, validator.operatorAddress)
+    }
+}
+
+fun ImageView.setValidatorImg(chain: ChainInitia, validator: com.initia.mstaking.v1.StakingProto.Validator) {
+    setMonikerImg(chain, validator.operatorAddress)
+}
+
+fun ImageView.setValidatorImg(chain: ChainZenrock, validator: com.zrchain.validation.HybridValidationProto.ValidatorHV) {
+    setMonikerImg(chain, validator.operatorAddress)
 }
 
 fun ImageView.setProviderImg(chain: BaseChain, apiName: String, opAddress: String?) {

@@ -210,18 +210,18 @@ class SwapFragment : Fragment() {
                 btnSwap.updateButtonView(false)
             } else {
                 outputAmount.text = formatAmount(swapOutputAmount, outputAsset?.decimals ?: 6)
-                
+
                 val price = BaseData.getPrice(outputAsset?.coinGeckoId)
                 val outputAmountDecimal = swapOutputAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO
                 val value = outputAmountDecimal.multiply(price)
                 outputAmountValue.text = formatAssetValue(value, coinGeckoId = outputAsset?.coinGeckoId)
-                
+
                 feeView.visibility = View.VISIBLE
-                
+
                 // Exchange rate
                 inputRateAmount.text = "1"
                 inputRateDenom.text = inputAsset?.symbol
-                
+
                 val inputAmountDecimal = inputAmount.toBigDecimalOrNull()
                 if (inputAmountDecimal != null && inputAmountDecimal.compareTo(BigDecimal.ZERO) != 0) {
                     val rate = outputAmountDecimal.divide(inputAmountDecimal, 6, RoundingMode.HALF_DOWN)
@@ -230,7 +230,7 @@ class SwapFragment : Fragment() {
                     outputRateAmount.text = "0"
                 }
                 outputRateDenom.text = outputAsset?.symbol
-                
+
                 txFeeAmount.text = formatAmount("0.01", 6)
                 txFeeDenom.text = "CNHO"
                 swapVenue.text = "CNHO Swap"
@@ -245,7 +245,7 @@ class SwapFragment : Fragment() {
                     invalidMsg.visibility = View.INVISIBLE
                 }
             }
-            
+
             val inputPrice = BaseData.getPrice(inputAsset?.coinGeckoId)
             val inputAmountDecimal = inputAmount.toBigDecimalOrNull()
             val inputValue = if (inputAmountDecimal == null) BigDecimal.ZERO else inputAmountDecimal.multiply(inputPrice)
@@ -348,7 +348,7 @@ class SwapFragment : Fragment() {
                 }
 
                 if (parentFragmentManager.findFragmentByTag(AssetSelectFragment::class.java.name) != null) return@setOnClickListener
-                
+
                 val selectFragment = AssetSelectFragment.newInstance(cnhoChain, inputAsset?.toTargetAsset(), swapAssets, cnhoChain.cosmosFetcher?.cosmosBalances, AssetSelectType.SWAP_INPUT, object : AssetListener {
                     override fun select(denom: String) {
                         if (outputAsset?.denom == denom) {
@@ -403,7 +403,7 @@ class SwapFragment : Fragment() {
                 })
                 slippageFragment.show(parentFragmentManager, SlippageFragment::class.java.name)
             }
-            
+
             btnHalf.setOnClickListener {
                 inputAsset?.let { asset ->
                     val balance = cnhoChain.cosmosFetcher()?.balanceAmount(asset.denom ?: "") ?: BigDecimal.ZERO

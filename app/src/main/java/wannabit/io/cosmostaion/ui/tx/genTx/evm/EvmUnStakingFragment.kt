@@ -25,7 +25,7 @@ import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.formatAssetValue
 import wannabit.io.cosmostaion.common.isActiveValidator
 import wannabit.io.cosmostaion.common.makeToast
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.common.updateButtonView
 import wannabit.io.cosmostaion.databinding.FragmentUnStakingBinding
 import wannabit.io.cosmostaion.databinding.ItemSegmentedFeeBinding
@@ -183,7 +183,7 @@ class EvmUnStakingFragment : BaseTxFragment() {
     private fun updateValidatorView() {
         binding.apply {
             validator?.let { validator ->
-                monikerImg.setMonikerImg(selectedChain, validator.operatorAddress)
+                monikerImg.setValidatorImg(selectedChain, validator)
                 monikerName.text = validator.description?.moniker?.trim()
 
                 val statusImage = when {

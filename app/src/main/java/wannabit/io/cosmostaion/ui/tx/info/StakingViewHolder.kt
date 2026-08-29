@@ -18,7 +18,7 @@ import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.formatString
 import wannabit.io.cosmostaion.common.goneOrVisible
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.databinding.ItemStakingInfoBinding
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -44,7 +44,7 @@ class StakingViewHolder(
                 listener.selectStakingAction(validator)
             }
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             if (validator.jailed) {
                 jailedImg.visibility = View.VISIBLE
@@ -140,7 +140,7 @@ class StakingViewHolder(
                 listener.selectInitiaStakingAction(validator)
             }
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             if (validator.jailed) {
                 jailedImg.visibility = View.VISIBLE
@@ -239,7 +239,7 @@ class StakingViewHolder(
                 listener.selectZenrockStakingAction(validator)
             }
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             if (validator.jailed) {
                 jailedImg.visibility = View.VISIBLE

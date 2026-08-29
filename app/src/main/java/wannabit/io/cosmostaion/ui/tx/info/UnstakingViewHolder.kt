@@ -16,7 +16,7 @@ import wannabit.io.cosmostaion.common.dpTime
 import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.gapTime
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.databinding.ItemUnstakingInfoBinding
 
 class UnstakingViewHolder(
@@ -38,7 +38,7 @@ class UnstakingViewHolder(
                 listener.selectUnStakingCancelAction(entry)
             }
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             val statusImage = when {
                 validator.jailed -> R.drawable.icon_jailed
@@ -75,7 +75,7 @@ class UnstakingViewHolder(
                 listener.selectInitiaUnStakingCancelAction(entry)
             }
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             val statusImage = when {
                 validator.jailed -> R.drawable.icon_jailed
@@ -113,7 +113,7 @@ class UnstakingViewHolder(
                 listener.selectZenrockUnStakingCancelAction(entry)
             }
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             val statusImage = when {
                 validator.jailed -> R.drawable.icon_jailed

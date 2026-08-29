@@ -25,7 +25,7 @@ import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.formatString
 import wannabit.io.cosmostaion.common.isActiveValidator
 import wannabit.io.cosmostaion.common.makeToast
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.common.updateButtonView
 import wannabit.io.cosmostaion.databinding.FragmentRedelegateBinding
 import wannabit.io.cosmostaion.databinding.ItemSegmentedFeeBinding
@@ -187,7 +187,7 @@ class EvmReDelegateFragment : BaseTxFragment() {
     private fun updateFromValidatorView() {
         binding.apply {
             fromValidator?.let { fromValidator ->
-                fromMonikerImg.setMonikerImg(selectedChain, fromValidator.operatorAddress)
+                fromMonikerImg.setValidatorImg(selectedChain, fromValidator)
                 fromMonikerName.text = fromValidator.description?.moniker?.trim()
                 val statusImage = when {
                     fromValidator.jailed -> R.drawable.icon_jailed
@@ -216,7 +216,7 @@ class EvmReDelegateFragment : BaseTxFragment() {
     private fun updateToValidatorView() {
         binding.apply {
             toValidator?.let { toValidator ->
-                toMonikerImg.setMonikerImg(selectedChain, toValidator.operatorAddress)
+                toMonikerImg.setValidatorImg(selectedChain, toValidator)
                 toMonikerName.text = toValidator.description?.moniker?.trim()
                 val statusImage = when {
                     toValidator.jailed -> R.drawable.icon_jailed

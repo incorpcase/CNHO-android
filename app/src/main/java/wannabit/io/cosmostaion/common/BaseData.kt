@@ -36,6 +36,8 @@ object BaseData {
     var ecosystems: MutableList<JsonObject>? = mutableListOf()
     var ads: List<Ads>? = mutableListOf()
 
+    var keybaseAvatars: MutableMap<String, String> = mutableMapOf()
+
     var isBackGround = false
     var appSchemeUrl = ""
 

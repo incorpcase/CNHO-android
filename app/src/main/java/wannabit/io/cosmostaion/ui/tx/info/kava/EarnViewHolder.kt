@@ -8,7 +8,7 @@ import wannabit.io.cosmostaion.R
 import wannabit.io.cosmostaion.chain.BaseChain
 import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.databinding.ItemEarnBinding
 import java.math.RoundingMode
 
@@ -22,7 +22,7 @@ class EarnViewHolder(
             val valOpAddress = deposit.denom.replace("bkava-", "")
             selectedChain?.cosmosFetcher?.cosmosValidators?.firstOrNull { it.operatorAddress == valOpAddress }
                 ?.let { validator ->
-                    monikerImg.setMonikerImg(selectedChain, validator.operatorAddress)
+                    monikerImg.setValidatorImg(selectedChain, validator)
                     moniker.text = validator.description.moniker?.trim()
                     if (validator.jailed) {
                         jailedImg.visibility = View.VISIBLE

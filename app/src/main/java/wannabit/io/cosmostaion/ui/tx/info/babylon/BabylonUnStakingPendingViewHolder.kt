@@ -12,7 +12,7 @@ import wannabit.io.cosmostaion.chain.fetcher.BabylonFetcher
 import wannabit.io.cosmostaion.common.BaseData
 import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.databinding.ItemBabylonUnstakingPendingBinding
 import java.math.RoundingMode
 
@@ -35,7 +35,7 @@ class BabylonUnStakingPendingViewHolder(
                 ContextCompat.getColor(context, R.color.color_base03), PorterDuff.Mode.SRC_IN
             )
 
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             moniker.text = validator.description?.moniker?.trim()
             if (validator.jailed) {
                 jailedImg.visibility = View.VISIBLE

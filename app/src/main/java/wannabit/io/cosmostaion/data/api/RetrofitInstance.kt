@@ -92,6 +92,12 @@ object RetrofitInstance {
             .baseUrl(WALLET_BASE_URL).build()
     }
 
+    private val keybaseRetrofit: Retrofit by lazy {
+        Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+            .addCallAdapterFactory(CoroutineCallAdapterFactory()).client(okHttpClient)
+            .baseUrl("https://keybase.io/").build()
+    }
+
     val mintscanApi: MintscanApi by lazy {
         mintScanRetrofit.create(MintscanApi::class.java)
     }
@@ -126,5 +132,9 @@ object RetrofitInstance {
 
     val githubApi: MintscanApi by lazy {
         githubRetrofit.create(MintscanApi::class.java)
+    }
+
+    val keybaseApi: KeybaseApi by lazy {
+        keybaseRetrofit.create(KeybaseApi::class.java)
     }
 }

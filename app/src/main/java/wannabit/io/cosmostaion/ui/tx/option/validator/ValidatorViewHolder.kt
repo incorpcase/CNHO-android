@@ -14,8 +14,8 @@ import wannabit.io.cosmostaion.chain.majorClass.ChainBitCoin86
 import wannabit.io.cosmostaion.common.BaseData
 import wannabit.io.cosmostaion.common.formatAmount
 import wannabit.io.cosmostaion.common.isActiveValidator
-import wannabit.io.cosmostaion.common.setMonikerImg
 import wannabit.io.cosmostaion.common.setProviderImg
+import wannabit.io.cosmostaion.common.setValidatorImg
 import wannabit.io.cosmostaion.databinding.ItemValidatorBinding
 import wannabit.io.cosmostaion.ui.tx.info.major.btc.BtcTxType
 import java.math.RoundingMode
@@ -27,7 +27,7 @@ class ValidatorViewHolder(
     fun bind(chain: BaseChain, validator: Validator) {
         binding.apply {
             validator.let { validator ->
-                monikerImg.setMonikerImg(chain, validator.operatorAddress)
+                monikerImg.setValidatorImg(chain, validator)
                 monikerName.text = validator.description?.moniker?.trim()
                 if (validator.jailed) {
                     jailedImg.visibility = View.VISIBLE
@@ -59,7 +59,7 @@ class ValidatorViewHolder(
         chain: ChainInitia, validator: StakingProto.Validator
     ) {
         binding.apply {
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             monikerName.text = validator.description?.moniker?.trim()
             if (validator.jailed) {
                 jailedImg.visibility = View.VISIBLE
@@ -89,7 +89,7 @@ class ValidatorViewHolder(
         chain: ChainZenrock, validator: com.zrchain.validation.HybridValidationProto.ValidatorHV
     ) {
         binding.apply {
-            monikerImg.setMonikerImg(chain, validator.operatorAddress)
+            monikerImg.setValidatorImg(chain, validator)
             monikerName.text = validator.description?.moniker?.trim()
             if (validator.jailed) {
                 jailedImg.visibility = View.VISIBLE
