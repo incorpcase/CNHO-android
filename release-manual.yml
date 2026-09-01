@@ -1,0 +1,84 @@
+name: Cosmostation Release Build
+
+on:
+  # Allows manual triggering from the Actions tab
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Release Version Name (e.g., 1.2.0)'
+        required: true
+        default: '1.0.0'
+  # Triggers on tag push (e.g., v1.0.0)
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Build both AAB (for Play Store) and APK (for direct install)
+      - name: Build Release
+        run: ./gradlew bundleRelease assembleRelease
+
+      # Signs the APK using the secrets provided
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEYSTORE }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      # Renames the output files to Cosmostation-{version}
+      - name: Rename Artifacts
+        run: |
+          VERSION="${{ github.event.inputs.version_name || github.ref_name }}"
+          # Rename signed APK
+          mv ${{ steps.sign_app.outputs.signedReleaseFile }} app/build/outputs/apk/release/Cosmostation-${VERSION}.apk
+          # Rename AAB (Note: signing AAB usually happens via Gradle config, but we rename it here)
+          mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/Cosmostation-${VERSION}.aab
+
+      # Upload to GitHub Actions Artifacts (Internal storage)
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cosmostation-Builds
+          path: |
+            app/build/outputs/apk/release/Cosmostation-*.apk
+            app/build/outputs/bundle/release/Cosmostation-*.aab
+
+      # Create a GitHub Release and attach the files
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ github.event.inputs.version_name || github.ref_name }}
+          name: Release ${{ github.event.inputs.version_name || github.ref_name }}
+          files: |
+            app/build/outputs/apk/release/Cosmostation-*.apk
+            app/build/outputs/bundle/release/Cosmostation-*.aab
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
